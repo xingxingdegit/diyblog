@@ -1,10 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>login</title>
-</head>
-<body>
-<h1> hello world </h1>
-</body>
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>首页</title>
+        <base href="http://127.0.0.1:5000" />
+        <link rel="shortcut icon" href="123.jpg" type="image/jpeg" />
+        <meta name="keywords" content="k8s,helm,前端,python" />
+        <meta name="author" content="大番茄" />
+        <meta name="description" content="主页" />
+        <meta charset="UTF-8" />
+        <style type="text/css">
+            #login {
+                width: 240px;
+                margin-left: auto;
+                margin-right: auto;
+                margin-top: 12%;
+            }
+            input {
+                width: 100%;
+            }
+            button {
+                width: 50px;
+                margin-left: 95px;
+            }
+        </style>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script type="text/javascript">
+            axios.get('/login')
+              .then(function(response) {
+                  console.log(response)
+                  var yy = document.getElementById("other")
+                  yy.value = response.data
+              })
+              .catch(function(error) {
+                  console.log(error)
+              })
+
+
+
+
+        </script>
+
+    </head>
+    <body>
+        <div>
+            <div id="login">
+                <form method="POST" name="login" action="test">
+                    <p>
+                        <input name="username" maxlength="35" placeholder="用户" required />
+                    </p>
+                    <p>
+                        <input name="password" autocomplete="off" maxlength="35" placeholder="密码" required />
+                    </p>
+                    <p>
+                        <input id="other" name="other" autocomplete="off" maxlength="35" hidden required value="abc" />
+                    </p>
+                    <p>
+                        <button type="submit">登录</button>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </body>
 </html>

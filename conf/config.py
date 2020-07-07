@@ -6,7 +6,7 @@ basedir = Path(__file__).absolute().parent.parent
 log_file = basedir / 'log/access.log'
 err_file = basedir / 'log/error.log'
 
-DEBUG = True
+DEBUG = False
 
 secret_key = b'''K\t\x91;\x9d8\n\xd8\xac\x97\xec(`\x0e$\x9a'''
 

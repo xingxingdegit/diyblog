@@ -1,6 +1,6 @@
-from flask import request, session
 import logging
-from flask import jsonify
+import random
+
 
 log = logging.getLogger(__name__)
 
@@ -12,4 +12,10 @@ def login():
     session['password'] = password
     return jsonify([user, password])
 
+
+def get_key():
+    key = [0] * 30
+    for i in range(30):
+        key[i] = random.randrange(128)
+    return bytes(key).decode('utf-8')
 
