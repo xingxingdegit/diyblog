@@ -8,16 +8,24 @@ err_file = basedir / 'log/error.log'
 
 DEBUG = False
 
+# 加密cookie， cookie里面需要加密的只有用户名和对应的sessionID。
 secret_key = b'''K\t\x91;\x9d8\n\xd8\xac\x97\xec(`\x0e$\x9a'''
 
 listen = {
     'host': '0.0.0.0',
     'port': 5000,
 }
+REDIS = {
+    'host': '172.17.221.213',
+    'port': 6379,
+    'password': 'mydiy',
+    'db': 0
+}
 
 DATABASES = {
+    'database': 'diyblog',   # 使用的库
     'read': {
-        'host': '192.168.21.233',
+        'host': '172.17.221.213',
         'port': 3306,
         'user': 'sst',
         'password': 'abcdefg',
@@ -27,7 +35,7 @@ DATABASES = {
         'conn_timeout': 600,     # 一个连接一直在使用，超过这么长时间没有回收， 则强制中断。 暂时没有使用
     },
     'write': {
-        'host': '192.168.21.233',
+        'host': '172.17.221.213',
         'port': 3306,
         'user': 'star',
         'password': 'abcdefg',
@@ -37,7 +45,7 @@ DATABASES = {
         'conn_timeout': 600,
     },
     'delete': {
-        'host': '192.168.21.233',
+        'host': '172.17.221.213',
         'port': 3306,
         'user': 'star',
         'password': 'abcdefg',

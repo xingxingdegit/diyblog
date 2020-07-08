@@ -6,9 +6,9 @@ import config
 import threading
 import datetime
 import time
+from config import DATABASES
 
 log = logging.getLogger(__name__)
-DATABASES = config.DATABASES
 
 
 def create_connect(database_name):

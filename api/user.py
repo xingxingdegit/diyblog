@@ -17,5 +17,5 @@ def get_key():
     key = [0] * 30
     for i in range(30):
         key[i] = random.randrange(128)
-    return bytes(key).decode('utf-8')
+    return True, bytes(key).decode('utf-8')
 

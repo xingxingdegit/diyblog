@@ -3,13 +3,16 @@ from flask import jsonify
 from flask import request
 from api import user
 import logging
+import redis
 
 log = logging.getLogger(__name__)
 
 
 def login():
     if request.method == 'GET':
-        return jsonify(user.get_key())
+        data = user.get_key()
+        if data[0]:
+            return jsonify({'success': True, 'data': data})
      
     elif request.method == 'POST':
         try:
