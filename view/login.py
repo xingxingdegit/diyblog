@@ -30,4 +30,6 @@ def login():
             else:
                 data = {'success': False, 'data': None}
             return jsonify(data)
+        except Exception:
+            pass
 

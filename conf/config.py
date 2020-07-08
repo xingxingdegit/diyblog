@@ -24,8 +24,8 @@ REDIS = {
 
 DATABASES = {
     'setting': {
-        'dbname': 'diyblog',   # 使用的库
-        'del_number': 10',   # 删除操作每次最多删除10条。 
+        'dbname': 'diyblog',  # 使用的库
+        'del_number': 10,   # 删除操作每次最多删除10条。 
 
     },
     'read': {
