@@ -5,6 +5,7 @@ from base import logger
 import logging
 import config
 from route import route
+from base import dbpool
 
 
 log = logging.getLogger(__name__)

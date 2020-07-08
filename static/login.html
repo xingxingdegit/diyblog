@@ -10,7 +10,7 @@
         <meta charset="UTF-8" />
         <style type="text/css">
             #login {
-                width: 240px;
+                width: 250px;
                 margin-left: auto;
                 margin-right: auto;
                 margin-top: 12%;
@@ -18,33 +18,40 @@
             input {
                 width: 100%;
             }
-            button {
-                width: 50px;
-                margin-left: 95px;
+            p {
+                width: 250px;
+                text-align: center;
+            }
+            nav {
+                text-align: right;
+            }
+            div {
+                background-color: #bcbcbc;
             }
         </style>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script type="text/javascript">
             axios.get('/login')
               .then(function(response) {
-                  console.log(response)
-                  var yy = document.getElementById("other")
-                  yy.value = response.data
+                  var other = document.getElementById("other")
+                  other.value = response.data
               })
               .catch(function(error) {
                   console.log(error)
               })
-
-
-
-
         </script>
 
     </head>
     <body>
+        <header>
+            <nav>
+                <a href="static/index.html"><button type="button">首页</button></a>
+            </nav>
+        </header>
         <div>
-            <div id="login">
-                <form method="POST" name="login" action="test">
+            <section id="login">
+                <p>后台登录</p>
+                <form method="POST" name="login" action="login">
                     <p>
                         <input name="username" maxlength="35" placeholder="用户" required />
                     </p>
@@ -58,7 +65,7 @@
                         <button type="submit">登录</button>
                     </p>
                 </form>
-            </div>
+            </section>
         </div>
     </body>
 </html>

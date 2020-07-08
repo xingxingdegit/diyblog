@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>创建用户</title>
+        <base href="http://127.0.0.1:5000" />
+        <link rel="shortcut icon" href="123.jpg" type="image/jpeg" />
+        <meta name="keywords" content="k8s,helm,前端,python" />
+        <meta name="author" content="大番茄" />
+        <meta name="description" content="创建用户" />
+        <meta charset="UTF-8" />
+        <style type="text/css">
+            #login {
+                width: 240px;
+                margin-left: auto;
+                margin-right: auto;
+                margin-top: 12%;
+            }
+            input {
+                width: 100%;
+            }
+            button {
+                width: 100px;
+                margin-left: 70px;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <div id="login">
+                <form method="POST" name="login" action="init">
+                    <p>
+                        <input name="username" maxlength="35" placeholder="用户" required />
+                    </p>
+                    <p>
+                        <input name="password" autocomplete="off" maxlength="35" placeholder="密码" required />
+                    </p>
+                    <p>
+                        <button type="submit">创建用户</button>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

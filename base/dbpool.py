@@ -20,8 +20,9 @@ def create_connect(database_tag):
         user=database_conf['user'],
         password=database_conf['password'],
         charset=database_conf['charset'],
-        autocommit=False,
+#        autocommit=False,
     )
+
     log.info('database_tag: {}|host: {}|port: {}|user: ***|password: ***|charset: {}|database connect already create'.format(
         database_tag, database_conf['host'], database_conf['port'], database_conf['charset']))
     return connect
@@ -170,10 +171,10 @@ class WhereSql():
         """
     pass
 
-class GetConnect():
+class DbGetConnect():
     isclose = False
     columns = {}
-    def __init__(self, database_tag):
+    def __init__(self, database_tag='read'):
         self.obj = DbConnectPool(database_tag)
         self.conn = self.obj.get()
         self.cur = self.conn.cursor()
@@ -184,6 +185,8 @@ class GetConnect():
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()
+        if exc_type is not None:
+            log.error(traceback.format_exc())
 
     def __del__(self):
         if not self.isclose:
@@ -262,6 +265,9 @@ class GetConnect():
         else:
             return number
 
+    def insert(self, table, value):
+        pass
+
     def update(self, table, values, where):
         all_fields = self.fields(table)
 
@@ -323,9 +329,6 @@ class GetConnect():
                 log.info('delete number is: {}'.format(number))
                 self.conn.commit()
                 return number
-
-
-
 
 
 

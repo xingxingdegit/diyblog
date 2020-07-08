@@ -1,12 +1,13 @@
 import redis
 from config import REDIS
+import logging
 
 log = logging.getLogger(__name__)
 
 class RedisGetConnect:
     pool = redis.ConnectionPool(
-        host=REDIS.host, port=REDIS.port, 
-        password=REDIS.password, db=REDIS.db, decode_responses=False)
+        host=REDIS['host'], port=REDIS['port'], 
+        password=REDIS['password'], db=REDIS['db'], decode_responses=True)
     
     def __init__(self):
         self.__connect = redis.Redis(connection_pool=self.pool)
