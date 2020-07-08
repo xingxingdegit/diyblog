@@ -23,7 +23,11 @@ REDIS = {
 }
 
 DATABASES = {
-    'database': 'diyblog',   # 使用的库
+    'setting': {
+        'dbname': 'diyblog',   # 使用的库
+        'del_number': 10',   # 删除操作每次最多删除10条。 
+
+    },
     'read': {
         'host': '172.17.221.213',
         'port': 3306,
@@ -31,7 +35,7 @@ DATABASES = {
         'password': 'abcdefg',
         'charset': 'utf8',
         'conn_max': 50,    # 每个数据库服务器最大连接
-        'conn_min': 0,     # 每个数据库服务器最少连接, 初始化的时候就自动创建了。回收连接的时候保留的空闲连接
+        'conn_min': 0,     # 每个数据库服务器最少连接, 初始化的时候就自动创建了。回收连接的时候保留的空闲连接,最小是1，写0也是1。
         'conn_timeout': 600,     # 一个连接一直在使用，超过这么长时间没有回收， 则强制中断。 暂时没有使用
     },
     'write': {

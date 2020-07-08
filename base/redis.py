@@ -1,9 +1,4 @@
 import redis
-import logging
-import traceback
-import config
-import datetime
-import time
 from config import REDIS
 
 log = logging.getLogger(__name__)
@@ -28,7 +23,7 @@ class RedisGetConnect:
     def expire(self, key, second):
         return self.__connect.expire(key, second)
 
-    def ttl(self, key)
+    def ttl(self, key):
         return self.__connect.ttl(key)
 
     def hmset(self, key, value):

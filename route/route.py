@@ -4,7 +4,7 @@ from view.login import login
 from config import secret_key
 
 
-app = Flask('myiterm')
+app = Flask('diyblog')
 app.secret_key = secret_key
 
 
