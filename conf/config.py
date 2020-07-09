@@ -21,7 +21,7 @@ listen = {
 REDIS = {
     'host': '172.17.221.213',
     'port': 6379,
-    'password': 'mydiy',
+    'password': '',
     'db': 0
 }
 
@@ -31,34 +31,34 @@ DATABASES = {
         'del_number': 10,   # 删除操作每次最多删除10条。 
 
     },
-    'read': {
+    'read': {                 #  select
         'host': '172.17.221.213',
         'port': 3306,
-        'user': 'sst',
+        'user': 'diyblog-read',
         'password': 'abcdefg',
         'charset': 'utf8',
-        'conn_max': 50,    # 每个数据库服务器最大连接
-        'conn_min': 0,     # 每个数据库服务器最少连接, 初始化的时候就自动创建了。回收连接的时候保留的空闲连接,最小是1，写0也是1。
+        'conn_max': 20,    # 每个数据库服务器最大连接
+        'conn_min': 1,     # 每个数据库服务器最少连接, 初始化的时候就自动创建了。回收连接的时候保留的空闲连接,最小是1，写0也是1。
         'conn_timeout': 600,     # 一个连接一直在使用，超过这么长时间没有回收， 则强制中断。 暂时没有使用
     },
-    'write': {
+    'write': {                # select, insert
         'host': '172.17.221.213',
         'port': 3306,
-        'user': 'star',
+        'user': 'diyblog-write',
         'password': 'abcdefg',
         'charset': 'utf8',
-        'conn_max': 20,
-        'conn_min': 0,
+        'conn_max': 10,
+        'conn_min': 1,
         'conn_timeout': 600,
     },
-    'delete': {
+    'delete': {              # select, insert, delete
         'host': '172.17.221.213',
         'port': 3306,
-        'user': 'star',
+        'user': 'diyblog-delete',
         'password': 'abcdefg',
         'charset': 'utf8',
-        'conn_max': 20,
-        'conn_min': 0,
+        'conn_max': 5,
+        'conn_min': 1,
     },
 }
 

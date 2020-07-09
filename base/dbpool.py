@@ -20,7 +20,7 @@ def create_connect(database_tag):
         user=database_conf['user'],
         password=database_conf['password'],
         charset=database_conf['charset'],
-#        autocommit=False,
+        autocommit=False,
     )
 
     log.info('database_tag: {}|host: {}|port: {}|user: ***|password: ***|charset: {}|database connect already create'.format(
@@ -238,38 +238,80 @@ class DbGetConnect():
         if fields:
             return fields
 
-        sql = 'show columns from {};'.format(table)
+        sql = r'show columns from {};'.format(table)
         log.info('sql: {}'.format(sql))
-        self.cur.execute(sql)
-        fields = [i[0] for i in self.cur.fetchall()]
+        try:
+            self.cur.execute(sql)
+        except Exception:
+            log.error(traceback.format_exc())
+            return False
+
+        fields = {i[0] for i in self.cur.fetchall()}
         self.columns[table] = fields
         return fields
 
     def select(self, table, fields='*', where=None, return_data=True):
         all_fields = self.fields(table)
+        if not all_fields:
+            return False, None
 
         if fields == '*':
             fields = ','.join(all_fields)
 
         whsql = self.where(where, all_fields)
         if whsql:
-            sql = 'select {} from {} where {};'.format(fields, table, whsql)
+            sql = r'select {} from {} where {};'.format(fields, table, whsql)
         else:
             log.error('op: select|fields: {}|where: {}|info: where check fail'.format(fields, where))
-            return False
+            return False, None
 
         log.info('op:select|sql: {}'.format(sql))
         number = self.cur.execute(sql)
         if return_data:
-            return number, [dict(zip(fields.split(','), onedata)) for onedata in self.cur.fetchall()]
+            return_data = number, [dict(zip(fields.split(','), onedata)) for onedata in self.cur.fetchall()]
         else:
-            return number
+            return_data = number
+        return True, return_data
 
     def insert(self, table, value):
-        pass
+        all_fields = self.fields(table)
+        if not all_fields:
+            return False, None
+
+        if not isinstance(value, list):
+            value = [value]
+
+        for one_data in value:
+            if set(one_data.keys()) - all_fields:
+                log.error('op:insert|table:{}|value:{}|info:fields not in table'.format(table, value))
+                return False, None
+            values = ','.join(['"{}"'] * len(one_data)).format(*one_data.values())
+            keys = ','.join(['{}'] * len(one_data)).format(*one_data.keys())
+            sql = r'insert into {} ({}) values ({});'.format(table, keys, values)
+            try:
+                self.cur.execute(sql)
+            except Exception:
+                log.error(traceback.format_exc())
+                self.conn.rollback()
+                break
+        else:
+            self.conn.commit()
+
+    def query(self, sql):
+        try:
+            data = self.cur.execute(sql)
+        except Exception:
+            self.conn.rollback()
+            log.error(traceback.format_exc())
+            return False, None
+        else:
+            self.conn.commit()
+            return True, data
 
     def update(self, table, values, where):
         all_fields = self.fields(table)
+        if not all_fields:
+            return False, None
 
         setsql = []
         for key, value in values.items():
@@ -283,7 +325,7 @@ class DbGetConnect():
             sql = 'update {} set {} where {};'.format(table, setsql, whsql)
         else:
             log.error('op: update|where: {}|info: where check fail'.format(where))
-            return False
+            return False, None
 
         log.info('op:update|sql: {}'.format(sql))
         try:
@@ -291,64 +333,110 @@ class DbGetConnect():
         except:
             self.conn.rollback()
             log.error(traceback.format_exc())
-            return False
+            return False, None
         else:
             log.info('update number is: {}'.format(data))
             self.conn.commit()
-            return data
+            return True, data
 
     def delete(self, table, where):
         number = self.select(table, where=where, return_data=False)
+        if number[0]:
+            return False, None
+
         max_del_number = DATABASES['setting']['del_number']
-        if number == 0 or number > max_del_number:
+        if number[1] == 0 or number[1] > max_del_number:
             log.error(
                 'op: delete|table:{}|where:{}|del_number: {}|info:check "Number of records deleted is error"'.format(table, where, number)
             )
-            return False
+            return False, None
 
         all_fields = self.fields(table)
+        if not all_fields:
+            return False, None
         whsql = self.where(where, all_fields)
         if whsql:
             sql = 'delete from {} where {};'.format(table, whsql)
         else:
             log.error('op: delete|where: {}|info: where check fail'.format(where))
-            return False
+            return False, None
         log.info('op:delete|sql: {}'.format(sql))
         try:
             number = self.cur.execute(sql)
         except:
             self.conn.rollback()
             log.error(traceback.format_exc())
-            return False
+            return False, None
         else:
             if number > max_del_number:
                 self.conn.rollback()
                 log.error('op:delete|del_number:{}|info: Beyond Max Number, already rollback'.format(number))
-                return False
+                return False, None
             else:
                 log.info('delete number is: {}'.format(number))
                 self.conn.commit()
-                return number
+                return True, number
 
 
 
-start = datetime.datetime.now()
-count = [0]
-def test_connect():
-    yy = DbConnectPool('read')
-    conn = yy.get()
-    yy.close()
-    count[0] += 1
-    if count[0] > 80:
-        end = datetime.datetime.now()
-        print((end - start).total_seconds())
-
-for x in range(82):
-    new_thread = threading.Thread(target=test_connect)
-    new_thread.start()
+#start = datetime.datetime.now()
+#count = [0]
+#def test_connect():
+#    yy = DbConnectPool('read')
+#    conn = yy.get()
+#    yy.close()
+#    count[0] += 1
+#    if count[0] > 60:
+#        end = datetime.datetime.now()
+#        print((end - start).total_seconds())
+#
+#for x in range(82):
+#    new_thread = threading.Thread(target=test_connect)
+#    new_thread.start()
     
 
 
     
+def create_table():
+    posts_sql = r'''
+                CREATE TABLE IF NOT EXISTS `posts` (
+                `id` int(10) unsigned NOT NULL,
+                `title` varchar(100) NOT NULL,
+                `create_time` int(10) unsigned NOT NULL,
+                `update_time` int(10) unsigned NOT NULL,
+                `posts` longtext DEFAULT NULL,
+                `class` tinyint(3) unsigned DEFAULT NULL,
+                `status` tinyint(3) unsigned NOT NULL,
+                `visits` int(10) unsigned DEFAULT NULL,
+                `urls` varchar(100) DEFAULT NULL,
+                `istop` tinyint(4) DEFAULT NULL,
+                PRIMARY KEY (`id`)
+              ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+              '''
+    class_sql = r'''
+                CREATE TABLE IF NOT EXISTS `class` (
+                `id` int(10) unsigned NOT NULL,
+                `classname` varchar(100) NOT NULL,
+                `status` tinyint(4) NOT NULL,
+                PRIMARY KEY (`id`)
+              ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+              '''
+    tags_sql = r'''
+              CREATE TABLE IF NOT EXISTS `tags` (
+                `id` int(10) unsigned NOT NULL,
+                `tagname` varchar(100) NOT NULL,
+                `post` int(10) unsigned NOT NULL,
+                PRIMARY KEY (`id`)
+              ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+              '''
+    users_sql = r'''
+                CREATE TABLE IF NOT EXISTS `users` (
+                `id` int(10) unsigned NOT NULL,
+                `username` varchar(100) NOT NULL,
+                `password` varchar(100) NOT NULL,
+                `role` tinyint(4) NOT NULL,
+                PRIMARY KEY (`id`)
+              ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+              '''
     
     

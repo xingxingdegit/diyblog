@@ -4,8 +4,8 @@ from flask import request
 from api import user
 import logging
 from flask import Flask, session, redirect, url_for, escape, request
-from base.redis import RedisGetConnec
 import datetime
+import random
 
 log = logging.getLogger(__name__)
 
@@ -14,6 +14,10 @@ def login():
     if request.method == 'GET':
         data = user.get_key()
         if data[0]:
+            log.info('{}:{}'.format('session', session))
+            key = random.choice('abcdefghigklmnopqrstuvwxyz')
+            session[key] = key
+
             return jsonify({'success': True, 'data': data[1]})
      
     elif request.method == 'POST':

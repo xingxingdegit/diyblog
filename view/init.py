@@ -12,5 +12,11 @@ log = logging.getLogger(__name__)
 
 
 def init():
-    username = request.form.get('username')
-    password = request.form.get('password')
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '').strip()
+    if username and password:
+        create_table = 
+        data = user.create_user(username, password)
+    else:
+        return jsonify({'success': False, 'data': '信息不完整'})
+    

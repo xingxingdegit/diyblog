@@ -6,6 +6,7 @@ import logging
 import config
 from route import route
 from base import dbpool
+print(sys.path)
 
 
 log = logging.getLogger(__name__)

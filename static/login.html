@@ -3,7 +3,9 @@
     <head>
         <title>首页</title>
         <base href="http://127.0.0.1:5000" />
-        <link rel="shortcut icon" href="123.jpg" type="image/jpeg" />
+        <!--
+        <link rel="shortcut icon" href="static/123.jpg" type="image/jpeg" />
+        -->
         <meta name="keywords" content="k8s,helm,前端,python" />
         <meta name="author" content="大番茄" />
         <meta name="description" content="主页" />
@@ -31,7 +33,7 @@
         </style>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script type="text/javascript">
-            axios.get('/login')
+            axios.get('login')
               .then(function(response) {
                   var other = document.getElementById("other")
                   other.value = response.data
