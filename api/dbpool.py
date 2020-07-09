@@ -7,6 +7,7 @@ import threading
 import datetime
 import time
 from config import DATABASES
+import functools
 
 log = logging.getLogger(__name__)
 
@@ -22,7 +23,6 @@ def create_connect(database_tag):
         charset=database_conf['charset'],
         autocommit=False,
     )
-
     log.info('database_tag: {}|host: {}|port: {}|user: ***|password: ***|charset: {}|database connect already create'.format(
         database_tag, database_conf['host'], database_conf['port'], database_conf['charset']))
     return connect
@@ -281,6 +281,7 @@ class DbGetConnect():
         if not isinstance(value, list):
             value = [value]
 
+        number = 0
         for one_data in value:
             if set(one_data.keys()) - all_fields:
                 log.error('op:insert|table:{}|value:{}|info:fields not in table'.format(table, value))
@@ -289,13 +290,15 @@ class DbGetConnect():
             keys = ','.join(['{}'] * len(one_data)).format(*one_data.keys())
             sql = r'insert into {} ({}) values ({});'.format(table, keys, values)
             try:
-                self.cur.execute(sql)
+                number += self.cur.execute(sql)
             except Exception:
                 log.error(traceback.format_exc())
                 self.conn.rollback()
                 break
         else:
             self.conn.commit()
+            return True, number
+        return False, None
 
     def query(self, sql):
         try:
@@ -379,6 +382,18 @@ class DbGetConnect():
 
 
 
+def with_database(tag):
+    def inner(func):
+        from flask import g
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            with DbGetConnect(tag) as g.db:
+                data = func(*args, **kwargs)
+            return data
+        return wrapper
+    return inner
+
+
 #start = datetime.datetime.now()
 #count = [0]
 #def test_connect():
@@ -397,6 +412,7 @@ class DbGetConnect():
 
 
     
+# 初始化表
 def create_table():
     posts_sql = r'''
                 CREATE TABLE IF NOT EXISTS `posts` (
@@ -438,5 +454,16 @@ def create_table():
                 PRIMARY KEY (`id`)
               ) ENGINE=InnoDB DEFAULT CHARSET=utf8
               '''
-    
+
+    with DbGetConnect() as db:
+        p = db.query(posts_sql)
+        c = db.query(class_sql)
+        t = db.query(tags_sql)
+        u = db.query(users_sql)
+    if p[0] and c[0] and t[0] and u[0]:
+        print(p[1], c[1], t[1], u[1])
+        return True
+    else:
+        return False
+
     

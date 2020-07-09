@@ -1,7 +1,8 @@
 import logging
 import random
-from base.redis import RedisGetConnect
-from base.dbpool import  DbGetConnect
+from flask import g
+from api.redis import RedisGetConnect
+from api.dbpool import  DbGetConnect, with_database
 import datetime
 from config import login_prefix_key_timeout
 from config import user_timeout
@@ -17,7 +18,7 @@ def login(username, password, key):
         db_data = db.select('users', where={'username': username})
     try:
         if len(db_data) != 1:
-            log.error('op:login|username:{}|info:Incorrect number of users'.format(username))
+            log.error('func:login|username:{}|info:Incorrect number of users'.format(username))
             return False, None
         if db_data[0]['password'] == sha256_password:
             redis = RedisGetConnect()
@@ -38,11 +39,11 @@ def login(username, password, key):
                     redis.expire(username, user_timeout)
                     return True, session_id
                 else:
-                    log.info('op:login|login_prefix_key is timeout')
+                    log.info('func:login|login_prefix_key is timeout')
             else:
-                log.info('op:login|login_prefix_key is timeout or not exist')
+                log.info('func:login|login_prefix_key is timeout or not exist')
         else:
-            log.info('op:login|password is error')
+            log.info('func:login|password is error')
     except Exception:
         log.error(traceback.format_exc())
 
@@ -63,5 +64,6 @@ def get_key():
         log.error(traceback.format_exc())
         data = False, None
     return data
+
 
 

@@ -1,16 +1,6 @@
 
 
 
-def test(func):
-    name = 'star'
-    return func()
+dd = __name__
 
-def yy():
-    print(name)
-    return name
-
-test(yy)
-
-
-
-
+print(dd)

@@ -9,7 +9,7 @@
         <meta name="description" content="创建用户" />
         <meta charset="UTF-8" />
         <style type="text/css">
-            #login {
+            #init {
                 width: 240px;
                 margin-left: auto;
                 margin-right: auto;
@@ -26,13 +26,13 @@
     </head>
     <body>
         <div>
-            <div id="login">
-                <form method="POST" name="login" action="init">
+            <div id="init">
+                <form method="POST" name="init" action="init">
                     <p>
                         <input name="username" maxlength="35" placeholder="用户" required />
                     </p>
                     <p>
-                        <input name="password" autocomplete="off" maxlength="35" placeholder="密码" required />
+                        <input name="password" type="password" autocomplete="off" maxlength="35" placeholder="密码" required />
                     </p>
                     <p>
                         <button type="submit">创建用户</button>
