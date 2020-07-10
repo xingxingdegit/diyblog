@@ -1,12 +1,13 @@
 # 处理数据库连接。
 import logging
 import pymysql
+import redis
 import traceback
 import config
-import threading
+#import threading
 import datetime
-import time
 from config import DATABASES
+from config import REDIS
 import functools
 
 log = logging.getLogger(__name__)
@@ -382,16 +383,75 @@ class DbGetConnect():
 
 
 
-def with_database(tag):
+
+class RedisGetConnect:
+    pool = redis.ConnectionPool(
+        host=REDIS['host'], port=REDIS['port'], 
+        password=REDIS['password'], db=REDIS['db'], decode_responses=True)
+    
+    def __init__(self):
+        self.__connect = redis.Redis(connection_pool=self.pool)
+
+    def set(self, key, value, ex=None):
+        return self.__connect.set(key, value, ex)
+
+    def get(self, key):
+        return self.__connect.get(key)
+
+    def delete(self, key):
+        return self.__connect.delete(key)
+
+    def expire(self, key, second):
+        return self.__connect.expire(key, second)
+
+    def ttl(self, key):
+        return self.__connect.ttl(key)
+
+    def hmset(self, key, value):
+        return self.__connect.hmset(key, value)
+
+    def hset(self, key, hkey, hvalue):
+        return self.__connect.hset(key, hkey, hvalue)
+
+    def hgetall(self, key):
+        return self.__connect.hgetall(key)
+
+    def hget(self, key, hkey):
+        return self.__connect.hget(key, hkey)
+
+    def hkeys(self, key):
+        return self.__connect.hkeys(key)
+
+    def hdel(self, key, *hkeys):
+        return self.__connect.hdel(key, *hkeys)
+    
+    def ping(self):
+        return self.__connect.ping()
+
+
+from flask import g
+
+def with_db(tag):
     def inner(func):
-        from flask import g
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            g.redis = RedisGetConnect()
             with DbGetConnect(tag) as g.db:
-                data = func(*args, **kwargs)
-            return data
+                return func(*args, **kwargs)
         return wrapper
     return inner
+
+def with_redis(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        g.redis = RedisGetConnect()
+        return func(*args, **kwargs)
+    return wrapper
+
+
+# 检测redis是否可以连接
+test_redis =  RedisGetConnect()
+test_redis.ping()
 
 
 #start = datetime.datetime.now()
@@ -412,7 +472,7 @@ def with_database(tag):
 
 
     
-# 初始化表
+# 第一次启动初始化数据库表
 def create_table():
     posts_sql = r'''
                 CREATE TABLE IF NOT EXISTS `posts` (

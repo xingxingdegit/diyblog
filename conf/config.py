@@ -19,7 +19,7 @@ listen = {
     'port': 5000,
 }
 REDIS = {
-    'host': '172.17.221.213',
+    'host': '192.168.33.154',
     'port': 6379,
     'password': '',
     'db': 0
@@ -32,7 +32,7 @@ DATABASES = {
 
     },
     'read': {                 #  select
-        'host': '172.17.221.213',
+        'host': '192.168.33.154',
         'port': 3306,
         'user': 'diyblog-read',
         'password': 'abcdefg',
@@ -42,7 +42,7 @@ DATABASES = {
         'conn_timeout': 600,     # 一个连接一直在使用，超过这么长时间没有回收， 则强制中断。 暂时没有使用
     },
     'write': {                # select, insert, create
-        'host': '172.17.221.213',
+        'host': '192.168.33.154',
         'port': 3306,
         'user': 'diyblog-write',
         'password': 'abcdefg',
@@ -52,7 +52,7 @@ DATABASES = {
         'conn_timeout': 600,
     },
     'delete': {              # select, insert, delete
-        'host': '172.17.221.213',
+        'host': '192.168.33.154',
         'port': 3306,
         'user': 'diyblog-delete',
         'password': 'abcdefg',

@@ -1,8 +1,8 @@
-from api.dbpool import with_database
+from api.dbpool import with_db
 from flask import g
 from hashlib import sha256
 
-@with_database('write')
+@with_db('write')
 def create_user(username, password):
     sha256_password = sha256(password.encode('utf-8')).hexdigest()
     data = {'username': username, 'password': sha256_password}
@@ -12,7 +12,7 @@ def create_user(username, password):
     return False
    
 # 初始化表
-@with_database('write')
+@with_db('write')
 def create_table():
     posts_sql = r'''
                 CREATE TABLE IF NOT EXISTS `posts` (

@@ -4,7 +4,6 @@ from flask import request
 from api import user
 import logging
 from flask import Flask, session, redirect, url_for, escape, request
-from api import redis
 import datetime
 from api.logger import base_log
 from api.init import create_user, create_table
