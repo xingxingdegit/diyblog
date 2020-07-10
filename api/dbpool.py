@@ -4,7 +4,6 @@ import pymysql
 import redis
 import traceback
 import config
-#import threading
 import datetime
 from config import DATABASES
 from config import REDIS
@@ -62,13 +61,23 @@ def connect_limit():
 
 class DbConnectPool:
     """
-    param: connect_all {database_name: {conn_key: connect_obj}, ...}   all of connect.
-    param: connect_idle {database_name: {conn_key, conn_key, ...}  idle of connect.
-    param: conn_keys {database_name: {*, *, *, ...}
+    param: connect_all {database_tag: {conn_key: connect_obj}, ...}   all of connect.
+    param: connect_idle {database_tag: {conn_key, conn_key, ...}  idle of connect.
+    param: conn_keys {database_tag: {*, *, *, ...}
     conn_key 是同一服务器的不同连接的名称。 为了把connect_all与connect_idle的连接对应起来
     param: usage_number   记录使用数据库的实例数量
-    param: connect_limit  {database_name: {'conn_max': #, 'conn_min': #}},  之后做一些完整性判断，暂时没有使用。
+    param: connect_limit  {database_tag: {'conn_max': #, 'conn_min': #}},  之后做一些完整性判断，暂时没有使用。
     param: connect_timeout   超过时间还没有close的连接，强制close， 暂时还不知道怎么实现比较好.
+    """
+    """
+    log:
+    use_conn_key: 当前使用的conn_key。
+    all_conn_key: 所有可以用来创建连接的conn_key。
+    all_conn: 所有连接的conn_key，包括空闲的与正在使用的。
+    idle_conn: 空闲连接的conn_key。
+    usage_numbe: 多少连接在被使用。
+    connect already recovery:  连接已经回收到idle_conn。
+    connect already closed：连接已经关闭，回收conn_key到all_conn_key。
     """
     __conn_keys, __connect_all, __connect_idle, usage_number = init_connect()
     #__connect_limit = connect_limit()
@@ -78,29 +87,27 @@ class DbConnectPool:
     def __init__(self, database_tag):
         if self.connect:
             return None
-
         self.database_tag = database_tag
         self.log(True, True, False, True, info='before get connect')
-        if self.__connect_idle[database_tag]:
+        try:
+        # 多线程环境无法确定容器里是否还有值
             self.conn_key = self.__connect_idle[database_tag].pop()
             self.connect = self.__connect_all[database_tag][self.conn_key]
-        else:
-            if self.__conn_keys[database_tag]:
+        except KeyError:
+            log.info(traceback.format_exc())
+            try:
                 self.conn_key = self.__conn_keys[database_tag].pop()
                 self.log(True, True, True, True, info='begin create database connect')
-                self.connect = create_connect(database_tag)
-                self.__connect_all[database_tag][self.conn_key] = self.connect
-
-            else:
+            except KeyError:
                 """ log : 数据库连接数到达上限 """
                 log.error(
                     "database_tag: {}|usage_number: {}|conn_key is empty, database connect up limit".format(
-                        database_tag, self.usage_number[database_tag]
-                    )
-                )
+                        database_tag, self.usage_number[database_tag]))
                 log.error(traceback.format_exc())
                 raise KeyError('database connect already get up limit') from None
-
+            else:
+                self.connect = create_connect(database_tag)
+                self.__connect_all[database_tag][self.conn_key] = self.connect
         self.usage_number[database_tag] += 1
         self.log(True, True, True, True, info='already get connect')
 
@@ -121,19 +128,21 @@ class DbConnectPool:
         format = []
         data_src = {}
         if idle:
-            format.append('idle: {idle}')
-            data_src['idle'] = self.__connect_idle[self.database_tag]
+            format.append('idle_conn:{idle}')
+            data_src['idle'] = ','.join(self.__connect_idle[self.database_tag])
         if all:
-            format.append('all: {all}')
-            data_src['all'] = self.__connect_all[self.database_tag].keys()
+            format.append('all_conn:{all}')
+            data_src['all'] = ','.join(self.__connect_all[self.database_tag].keys())
         if conn_key:
-            format.append('conn_key: {conn_key}')
-            data_src['conn_key'] = self.conn_key
+            format.append('all_conn_key:{all_conn_key}')
+            data_src['all_conn_key'] = ','.join(self.__conn_keys[self.database_tag])
+            format.append('use_conn_key:{use_conn_key}')
+            data_src['use_conn_key'] = self.conn_key
         if usage_number:
-            format.append('usage_number: {usage_number}')
+            format.append('usage_number:{usage_number}')
             data_src['usage_number'] = self.usage_number[self.database_tag]
         if info:
-            format.append('info: {info}')
+            format.append('info:{info}')
             data_src['info'] = info
         log.info('|'.join(format).format_map(data_src))
 
@@ -449,16 +458,20 @@ def with_redis(func):
     return wrapper
 
 
-# 检测redis是否可以连接
+# 初始化检测redis是否可以连接
 test_redis =  RedisGetConnect()
 test_redis.ping()
 
 
+# 只是测试 数据库代码
 #start = datetime.datetime.now()
 #count = [0]
+#import time
+#import threading
 #def test_connect():
 #    yy = DbConnectPool('read')
 #    conn = yy.get()
+#    time.sleep(2)
 #    yy.close()
 #    count[0] += 1
 #    if count[0] > 60:
