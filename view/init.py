@@ -7,6 +7,7 @@ from flask import Flask, session, redirect, url_for, escape, request
 import datetime
 from api.logger import base_log
 from api.init import create_user, create_table
+from flask_socketio import SocketIO, send, emit
 
 log = logging.getLogger(__name__)
 
@@ -29,3 +30,21 @@ def init():
     else:
         return jsonify({'success': False, 'data': '信息不完整'})
     
+
+def test_socket(data):
+    print('test_socket: {}'.format(data))
+    log.info(data)
+    log.info('11111111111')
+    return '1111111'
+  
+def test_socket1():
+    print('test_socket: {}'.format('2222222'))
+    log.info('222222222')
+    return '22222222'
+
+def message(data1):
+    log.info('data1:{}'.format(data1))
+    send(data1)
+
+def json_data(data):
+    log.info('json: {}'.format(data))
