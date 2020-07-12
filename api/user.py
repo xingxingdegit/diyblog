@@ -63,19 +63,22 @@ def login(username, password, key):
     return False, None
 
 
-@with_redis
+@with_db('read')
 def get_key():
     key = [0] * 10
     for i in range(10):
         key[i] = random.randrange(97, 123)
     timestamp = int(datetime.datetime.now().timestamp())
     key = 'loginPrefix{}:{}'.format(timestamp, bytes(key).decode('utf-8'))
+    data = False, None
     try:
-        g.redis.set(key, int(timestamp), ex=login_prefix_key_timeout)
-        data = True, key
+        setting = g.db.select('setting', fields=['key', 'value'], where={'key': 'login_prefix_key_timeout'})
+        if setting[0]:
+            login_prefix_key_timeout = setting[1][0]['value']
+            g.redis.set(key, int(timestamp), ex=login_prefix_key_timeout)
+            data = True, key
     except Exception:
         log.error(traceback.format_exc())
-        data = False, None
     return data
 
 
