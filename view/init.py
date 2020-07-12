@@ -5,32 +5,103 @@ from api import user
 import logging
 from flask import Flask, session, redirect, url_for, escape, request
 import datetime
+import json
 from api.logger import base_log
-from api.init import create_user, create_table
+from api.init import create_user, create_table, init_setting
 from flask_socketio import SocketIO, send, emit
+import os
+import base64
+import time
 
 log = logging.getLogger(__name__)
 
 
+#@base_log
+#def init():
+#    username = request.form.get('username', '').strip()
+#    password = request.form.get('password', '').strip()
+#    if username and password:
+#        create_table_state = create_table()
+#        if create_table_state:
+#            create_user_state = create_user(username, password)
+#            if create_user_state:
+#                return {'success': True, 'data': '数据表创建成功，用户创建成功'}
+#            else:
+#                return {'success': False, 'data': '用户创建失败'}
+#        else:
+#            return {'success': False, 'data': '数据库表创建失败'}
+#
+#    else:
+#        return jsonify({'success': False, 'data': '信息不完整'})
+
 @base_log
-def init():
-    username = request.form.get('username', '').strip()
-    password = request.form.get('password', '').strip()
+def init(data):
+    emit('init', {'stage': 'start', 'data': 'begin...'})
+    username = data.get('username', '').strip()
+    password = data.get('password', '').strip()
+
+    beginning = {'stage': 'in', 'data': {}}
+    beginning['data'].update({'tag': 'check_user', 'type': 'key', 'data': '用户信息检查', 'state': None})
+    emit('init', beginning)
     if username and password:
+        beginning['data'].update({'tag': 'check_user', 'type': 'value', 'data': '成功', 'state': 'success'})
+        emit('init', beginning)
+
+        beginning['data'].update({'tag': 'create_table', 'type': 'key', 'data': '创建数据表', 'state': None})
+        emit('init', beginning)
         create_table_state = create_table()
+        time.sleep(0.5)
         if create_table_state:
-            create_user_state = create_user(username, password)
-            if create_user_state:
-                return {'success': True, 'data': '数据表创建成功，用户创建成功'}
+            beginning['data'].update({'tag': 'create_table', 'type': 'value', 'data': '成功', 'state': 'success'})
+            emit('init', beginning)
+
+            # 用户加密cookie的秘钥，cookie里存放用户名与sessioinID, 没有密码相关信息.
+            beginning['data'].update({'tag': 'user_key', 'type': 'key', 'data': '创建用户秘钥', 'state': None})
+            emit('init', beginning)
+            cookie_key = base64.b64encode(os.urandom(21)).decode('utf-8')
+            time.sleep(0.5)
+            if cookie_key:
+                beginning['data'].update({'tag': 'user_key', 'type': 'value', 'data': '成功', 'state': 'success'})
+                emit('init', beginning)
             else:
-                return {'success': False, 'data': '用户创建失败'}
+                beginning['data'].update({'tag': 'user_key', 'type': 'value', 'data': '失败', 'state': 'fail'})
+                emit('init', beginning)
+                emit('init', {'stage': 'end', 'data': 'end'})
+                return False
+
+            beginning['data'].update({'tag': 'create_user', 'type': 'key', 'data': '创建用户', 'state': None})
+            emit('init', beginning)
+            data['cookie_key'] = cookie_key
+            create_user_state = create_user(data)
+            if create_user_state:
+                time.sleep(0.5)
+                beginning['data'].update({'tag': 'create_user', 'type': 'value', 'data': '成功', 'state': 'success'})
+                emit('init', beginning)
+            else:
+                beginning['data'].update({'tag': 'create_user', 'type': 'value', 'data': '失败', 'state': 'fail'})
+                emit('init', beginning)
+                emit('init', {'stage': 'end', 'data': 'end'})
+                return False
+            beginning['data'].update({'tag': 'init_setting', 'type': 'key', 'data': '添加默认设置', 'state': None})
+            emit('init', beginning)
+            init_setting_state = init_setting()
+            time.sleep(0.5)
+            if init_setting_state:
+                beginning['data'].update({'tag': 'init_setting', 'type': 'value', 'data': '成功', 'state': 'success'})
+                emit('init', beginning)
+            else:
+                beginning['data'].update({'tag': 'init_setting', 'type': 'value', 'data': '失败', 'state': 'fail'})
+                emit('init', beginning)
         else:
-            return {'success': False, 'data': '数据库表创建失败'}
-
+            beginning['data'].update({'tag': 'create_table', 'type': 'value', 'data': '失败', 'state': 'fail'})
+            emit('init', beginning)
     else:
-        return jsonify({'success': False, 'data': '信息不完整'})
-    
+        beginning['data'].update({'tag': 'check_user', 'type': 'value', 'data': '失败', 'state': 'fail'})
+        emit('init', beginning)
+    emit('init', {'stage': 'end', 'data': 'end'})
 
+
+    
 def test_socket(data):
     print('test_socket: {}'.format(data))
     log.info(data)

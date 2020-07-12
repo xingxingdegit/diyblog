@@ -227,16 +227,28 @@ class DbGetConnect():
                 #    break
                 # 防止空key。
                 if not key.strip():
-                    log.error('key: {}|value: {}|info: where key is empty, query is end'.format(key, value))
+                    log.error('key:{}|value:{}|info:where key is empty, query is end'.format(key, value))
                     break
                 # key没有在表字段里
                 if key not in fields:
-                    log.error('key: {}|value: {}|info: where key is not in fields, query is end'.format(key, value))
+                    log.error('key:{}|value:{}|info:where key is not in fields, query is end'.format(key, value))
                     break
-                if value is None:
-                    where_sql.append('{} is null'.format(key))
-                else:
-                    where_sql.append('{}="{}"'.format(key, value))
+                if (value is True) or (value is False) or (value == []):
+                    log.error('key:{}|value:{}|info:value have a question, query is end'.format(key, value))
+                    break
+
+                if not isinstance(value, list):
+                    value = [value]
+                or_term = []
+                for one_value in value:
+                    if one_value is None:
+                        or_term.append('`{}` is null'.format(key))
+                    else:
+                        or_term.append('`{}`="{}"'.format(key, one_value))
+                if len(or_term) > 1:
+                    or_term = '({})'.format(' or '.join(or_term))
+
+                where_sql.append(or_term)
             else:
                 return ' and '.join(where_sql)
         return False
@@ -261,21 +273,27 @@ class DbGetConnect():
         return fields
 
     def select(self, table, fields='*', where=None, return_data=True):
+        """ param fields: [] """
         all_fields = self.fields(table)
         if not all_fields:
             return False, None
-
         if fields == '*':
-            fields = ','.join(all_fields)
+            fields = ','.join(['`{}`'] * len(all_fields)).format(all_fields)
+        elif isinstance(fields, list):
+            fields = ','.join(['`{}`'] * len(fields)).format(fields)
+        else:
+            log.error('func:select|fields:{}|info:fields type is error')
+            return False, None
+
 
         whsql = self.where(where, all_fields)
         if whsql:
-            sql = r'select {} from {} where {};'.format(fields, table, whsql)
+            sql = r'select {} from `{}` where {};'.format(fields, table, whsql)
         else:
-            log.error('op: select|fields: {}|where: {}|info: where check fail'.format(fields, where))
+            log.error('func:select|fields:{}|where:{}|info:where check fail'.format(fields, where))
             return False, None
 
-        log.info('op:select|sql: {}'.format(sql))
+        log.info('func:select|sql: {}'.format(sql))
         number = self.cur.execute(sql)
         if return_data:
             return_data = number, [dict(zip(fields.split(','), onedata)) for onedata in self.cur.fetchall()]
@@ -294,19 +312,20 @@ class DbGetConnect():
         number = 0
         for one_data in value:
             if set(one_data.keys()) - all_fields:
-                log.error('op:insert|table:{}|value:{}|info:fields not in table'.format(table, value))
+                log.error('func:insert|table:{}|value:{}|info:fields not in table'.format(table, value))
                 return False, None
             values = ','.join(['"{}"'] * len(one_data)).format(*one_data.values())
-            keys = ','.join(['{}'] * len(one_data)).format(*one_data.keys())
-            sql = r'insert into {} ({}) values ({});'.format(table, keys, values)
+            keys = ','.join(['`{}`'] * len(one_data)).format(*one_data.keys())
+            sql = r'insert into `{}` ({}) values ({});'.format(table, keys, values)
             try:
+                log.info('func:insert|sql: {}'.format(sql))
                 number += self.cur.execute(sql)
             except Exception:
                 log.error(traceback.format_exc())
-                self.conn.rollback()
+                self.rollback()
                 break
         else:
-            self.conn.commit()
+            self.commit()
             return True, number
         return False, None
 
@@ -314,11 +333,11 @@ class DbGetConnect():
         try:
             data = self.cur.execute(sql)
         except Exception:
-            self.conn.rollback()
+            self.rollback()
             log.error(traceback.format_exc())
             return False, None
         else:
-            self.conn.commit()
+            self.commit()
             return True, data
 
     def update(self, table, values, where):
@@ -329,27 +348,27 @@ class DbGetConnect():
         setsql = []
         for key, value in values.items():
             if value == None:
-                setsql.append('{}=null'.format(key))
+                setsql.append('`{}`=null'.format(key))
             else:
-                setsql.append('{}="{}"'.format(key, value))
+                setsql.append('`{}`="{}"'.format(key, value))
         setsql = ','.join(setsql)
         whsql = self.where(where, all_fields)
         if whsql:
-            sql = 'update {} set {} where {};'.format(table, setsql, whsql)
+            sql = 'update `{}` set {} where {};'.format(table, setsql, whsql)
         else:
-            log.error('op: update|where: {}|info: where check fail'.format(where))
+            log.error('func:update|where:{}|info:where check fail'.format(where))
             return False, None
 
-        log.info('op:update|sql: {}'.format(sql))
+        log.info('func:update|sql:{}'.format(sql))
         try:
             data = self.cur.execute(sql)
         except:
-            self.conn.rollback()
+            self.rollback()
             log.error(traceback.format_exc())
             return False, None
         else:
             log.info('update number is: {}'.format(data))
-            self.conn.commit()
+            self.commit()
             return True, data
 
     def delete(self, table, where):
@@ -360,7 +379,7 @@ class DbGetConnect():
         max_del_number = DATABASES['setting']['del_number']
         if number[1] == 0 or number[1] > max_del_number:
             log.error(
-                'op: delete|table:{}|where:{}|del_number: {}|info:check "Number of records deleted is error"'.format(table, where, number)
+                'func:delete|table:{}|where:{}|del_number:{}|info:check "Number of records deleted is error"'.format(table, where, number)
             )
             return False, None
 
@@ -369,25 +388,25 @@ class DbGetConnect():
             return False, None
         whsql = self.where(where, all_fields)
         if whsql:
-            sql = 'delete from {} where {};'.format(table, whsql)
+            sql = 'delete from `{}` where {};'.format(table, whsql)
         else:
-            log.error('op: delete|where: {}|info: where check fail'.format(where))
+            log.error('func:delete|where:{}|info:where check fail'.format(where))
             return False, None
-        log.info('op:delete|sql: {}'.format(sql))
+        log.info('func:delete|sql: {}'.format(sql))
         try:
             number = self.cur.execute(sql)
         except:
-            self.conn.rollback()
+            self.rollback()
             log.error(traceback.format_exc())
             return False, None
         else:
             if number > max_del_number:
-                self.conn.rollback()
-                log.error('op:delete|del_number:{}|info: Beyond Max Number, already rollback'.format(number))
+                self.rollback()
+                log.error('func:delete|del_number:{}|info: Beyond Max Number, already rollback'.format(number))
                 return False, None
             else:
                 log.info('delete number is: {}'.format(number))
-                self.conn.commit()
+                self.commit()
                 return True, number
 
 
@@ -481,62 +500,4 @@ test_redis.ping()
 #for x in range(82):
 #    new_thread = threading.Thread(target=test_connect)
 #    new_thread.start()
-    
-
-
-    
-# 第一次启动初始化数据库表
-def create_table():
-    posts_sql = r'''
-                CREATE TABLE IF NOT EXISTS `posts` (
-                `id` int(10) unsigned NOT NULL,
-                `title` varchar(100) NOT NULL,
-                `create_time` int(10) unsigned NOT NULL,
-                `update_time` int(10) unsigned NOT NULL,
-                `posts` longtext DEFAULT NULL,
-                `class` tinyint(3) unsigned DEFAULT NULL,
-                `status` tinyint(3) unsigned NOT NULL,
-                `visits` int(10) unsigned DEFAULT NULL,
-                `urls` varchar(100) DEFAULT NULL,
-                `istop` tinyint(4) DEFAULT NULL,
-                PRIMARY KEY (`id`)
-              ) ENGINE=InnoDB DEFAULT CHARSET=utf8
-              '''
-    class_sql = r'''
-                CREATE TABLE IF NOT EXISTS `class` (
-                `id` int(10) unsigned NOT NULL,
-                `classname` varchar(100) NOT NULL,
-                `status` tinyint(4) NOT NULL,
-                PRIMARY KEY (`id`)
-              ) ENGINE=InnoDB DEFAULT CHARSET=utf8
-              '''
-    tags_sql = r'''
-              CREATE TABLE IF NOT EXISTS `tags` (
-                `id` int(10) unsigned NOT NULL,
-                `tagname` varchar(100) NOT NULL,
-                `post` int(10) unsigned NOT NULL,
-                PRIMARY KEY (`id`)
-              ) ENGINE=InnoDB DEFAULT CHARSET=utf8
-              '''
-    users_sql = r'''
-                CREATE TABLE IF NOT EXISTS `users` (
-                `id` int(10) unsigned NOT NULL,
-                `username` varchar(100) NOT NULL,
-                `password` varchar(100) NOT NULL,
-                `role` tinyint(4) NOT NULL,
-                PRIMARY KEY (`id`)
-              ) ENGINE=InnoDB DEFAULT CHARSET=utf8
-              '''
-
-    with DbGetConnect() as db:
-        p = db.query(posts_sql)
-        c = db.query(class_sql)
-        t = db.query(tags_sql)
-        u = db.query(users_sql)
-    if p[0] and c[0] and t[0] and u[0]:
-        print(p[1], c[1], t[1], u[1])
-        return True
-    else:
-        return False
-
     
