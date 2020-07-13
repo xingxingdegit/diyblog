@@ -11,7 +11,6 @@ from api.init import create_user, create_table, init_setting
 from flask_socketio import SocketIO, send, emit
 import os
 import base64
-import time
 
 log = logging.getLogger(__name__)
 
@@ -50,7 +49,6 @@ def init(data):
         beginning['data'].update({'tag': 'create_table', 'type': 'key', 'data': '创建数据表', 'state': None})
         emit('init', beginning)
         create_table_state = create_table()
-        time.sleep(0.5)
         if create_table_state:
             beginning['data'].update({'tag': 'create_table', 'type': 'value', 'data': '成功', 'state': 'success'})
             emit('init', beginning)
@@ -59,7 +57,6 @@ def init(data):
             beginning['data'].update({'tag': 'user_key', 'type': 'key', 'data': '创建用户秘钥', 'state': None})
             emit('init', beginning)
             cookie_key = base64.b64encode(os.urandom(21)).decode('utf-8')
-            time.sleep(0.5)
             if cookie_key:
                 beginning['data'].update({'tag': 'user_key', 'type': 'value', 'data': '成功', 'state': 'success'})
                 emit('init', beginning)
@@ -74,7 +71,6 @@ def init(data):
             data['cookie_key'] = cookie_key
             create_user_state = create_user(data)
             if create_user_state:
-                time.sleep(0.5)
                 beginning['data'].update({'tag': 'create_user', 'type': 'value', 'data': '成功', 'state': 'success'})
                 emit('init', beginning)
             else:
@@ -85,7 +81,6 @@ def init(data):
             beginning['data'].update({'tag': 'init_setting', 'type': 'key', 'data': '添加默认设置', 'state': None})
             emit('init', beginning)
             init_setting_state = init_setting()
-            time.sleep(0.5)
             if init_setting_state:
                 beginning['data'].update({'tag': 'init_setting', 'type': 'value', 'data': '成功', 'state': 'success'})
                 emit('init', beginning)

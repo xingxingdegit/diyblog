@@ -31,7 +31,7 @@ def login(username, password, key):
                     setting = g.db.select(
                         'setting', fields=['key', 'value'], where={'key': ['login_prefix_key_timeout', 'user_timeout']})
                     if setting[0]: 
-                        setting = {one_set['key']:one_set['value'] for one_set in setting[1][1]}
+                        setting = {one_set['key']: int(one_set['value']) for one_set in setting[1][1]}
                         if ('login_prefix_key_timeout' not in setting) or ('user_timeout' not in setting):
                             log.error('func:login|setting:{}|info:setting about user login have a question'.format(setting))
                             return False, None

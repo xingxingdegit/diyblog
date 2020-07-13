@@ -218,6 +218,10 @@ class DbGetConnect():
         self.conn.rollback()
 
     def where(self, where, fields):
+        """
+            ::param where: {key: value, ..., key: [value, value,...], ...}
+            ::param fields: [<field>, ...]
+        """
         where_sql = []
         if where:
             for key, value in where.items():
@@ -255,7 +259,10 @@ class DbGetConnect():
 
 
     def fields(self, table):
-        """字段必须查，除了生成数据字典外，最重要的是判断where中的字段是否存在"""
+
+        """字段必须查，除了生成数据字典外，最重要的是判断where中的字段是否存在
+           params: return_data:  [<field>, ...]
+        """
         fields = self.columns.get(table)
         if fields:
             return fields
@@ -301,6 +308,9 @@ class DbGetConnect():
         return True, return_data
 
     def insert(self, table, value):
+        """
+        :param: value:  {key: value, ...}  or  [{key: value,...}, {key: value,...}, ...]
+        """
         all_fields = self.fields(table)
         if not all_fields:
             return False, None
@@ -380,7 +390,7 @@ class DbGetConnect():
         setting = self.select('setting', where={'key': 'del_number'})
         if setting[0]:
             if setting[1][0]:
-                del_number = setting[1][1][0]['value']
+                del_number = int(setting[1][1][0]['value'])
             else:
                 log.error('func:delete|set:del_number|setting not found')
                 return False, None

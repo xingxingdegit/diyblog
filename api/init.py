@@ -36,6 +36,9 @@ def init_setting():
                  'intro': '登录界面获取的安全key超时时间， 这个key与用户名密码共同组成登录验证。'})
     data.append({'key': 'user_timeout', 'value': 36000, 'intro': '用户登陆以后空闲的超时时间，超时以后需要重新登陆'})
     data.append({'key': 'del_number', 'value': 10, 'intro': '可以一次性删除的记录数目'})
+    data.append({'key': 'login_blacklist_timeout', 'value': 600, 'intro': '登录黑名单的封锁时间,秒'})
+    data.append({'key': 'login_fail_count', 'value': 10, 'intro': '连续登录失败10次，进登录黑名单'})
+    data.append({'key': 'login_fail_lasttime', 'value': 60, 'intro': '两次登录失败间隔不超过这个时间，就会添加失败计数，秒'})
     state = g.db.insert('setting', data)
     if state[0]:
         return True
