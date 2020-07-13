@@ -272,8 +272,11 @@ class DbGetConnect():
         self.columns[table] = fields
         return fields
 
-    def select(self, table, fields='*', where=None, return_data=True):
-        """ param fields: [] """
+    def select(self, table, fields='*', where=None):
+        """ ::param fields: [] 
+            ::param where: {key: value, ..., key: [value, value,...], ...}
+            ::return data: (<state>, (<number>, [{},{},...]))
+        """
         all_fields = self.fields(table)
         if not all_fields:
             return False, None
@@ -285,7 +288,6 @@ class DbGetConnect():
             log.error('func:select|fields:{}|info:fields type is error')
             return False, None
 
-
         whsql = self.where(where, all_fields)
         if whsql:
             sql = r'select {} from `{}` where {};'.format(fields, table, whsql)
@@ -295,10 +297,7 @@ class DbGetConnect():
 
         log.info('func:select|sql: {}'.format(sql))
         number = self.cur.execute(sql)
-        if return_data:
-            return_data = number, [dict(zip(fields.split(','), onedata)) for onedata in self.cur.fetchall()]
-        else:
-            return_data = number
+        return_data = number, [dict(zip(fields.split(','), onedata)) for onedata in self.cur.fetchall()]
         return True, return_data
 
     def insert(self, table, value):
@@ -341,6 +340,8 @@ class DbGetConnect():
             return True, data
 
     def update(self, table, values, where):
+        """param: values:  {}
+        """
         all_fields = self.fields(table)
         if not all_fields:
             return False, None
@@ -372,12 +373,21 @@ class DbGetConnect():
             return True, data
 
     def delete(self, table, where):
-        number = self.select(table, where=where, return_data=False)
+        number = self.select(table, where=where)
         if number[0]:
             return False, None
 
-        max_del_number = DATABASES['setting']['del_number']
-        if number[1] == 0 or number[1] > max_del_number:
+        setting = self.select('setting', where={'key': 'del_number'})
+        if setting[0]:
+            if setting[1][0]:
+                del_number = setting[1][1][0]['value']
+            else:
+                log.error('func:delete|set:del_number|setting not found')
+                return False, None
+        else:
+            return False, None
+
+        if number[1][0] == 0 or number[1][0] > del_number:
             log.error(
                 'func:delete|table:{}|where:{}|del_number:{}|info:check "Number of records deleted is error"'.format(table, where, number)
             )
@@ -400,7 +410,7 @@ class DbGetConnect():
             log.error(traceback.format_exc())
             return False, None
         else:
-            if number > max_del_number:
+            if number > del_number:
                 self.rollback()
                 log.error('func:delete|del_number:{}|info: Beyond Max Number, already rollback'.format(number))
                 return False, None

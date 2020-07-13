@@ -8,18 +8,12 @@ err_file = basedir / 'log/error.log'
 
 DEBUG = False
 
-#user_timeout = 36000  # 秒， 登录以后长时间没有操作的超时时间。超时以后需要重新登陆。
-#login_prefix_key_timeout = 300  # 秒， 登录界面获取的安全key超时时间， 这个key与用户名密码共同组成登录验证。
-
-# 加密cookie， cookie里面需要加密的只有用户名和对应的sessionID。
-#secret_key = b'''K\t\x91;\x9d8\n\xd8\xac\x97\xec(`\x0e$\x9a'''
-
 listen = {
     'host': '0.0.0.0',
     'port': 5000,
 }
 REDIS = {
-    'host': '192.168.33.154',
+    'host': '172.17.132.11',
     'port': 6379,
     'password': '',
     'db': 0
@@ -32,7 +26,7 @@ DATABASES = {
 
     },
     'read': {                 #  select
-        'host': '192.168.33.154',
+        'host': '172.17.132.11',
         'port': 3306,
         'user': 'diyblog-read',
         'password': 'abcdefg',
@@ -42,7 +36,7 @@ DATABASES = {
         'conn_timeout': 600,     # 一个连接一直在使用，超过这么长时间没有回收， 则强制中断。 暂时没有使用
     },
     'write': {                # select, insert, create, update
-        'host': '192.168.33.154',
+        'host': '172.17.132.11',
         'port': 3306,
         'user': 'diyblog-write',
         'password': 'abcdefg',
@@ -52,7 +46,7 @@ DATABASES = {
         'conn_timeout': 600,
     },
     'delete': {              # select, delete
-        'host': '192.168.33.154',
+        'host': '172.17.132.11',
         'port': 3306,
         'user': 'diyblog-delete',
         'password': 'abcdefg',

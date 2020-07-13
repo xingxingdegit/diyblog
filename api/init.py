@@ -35,6 +35,7 @@ def init_setting():
     data.append({'key': 'login_prefix_key_timeout', 'value': 300, 
                  'intro': '登录界面获取的安全key超时时间， 这个key与用户名密码共同组成登录验证。'})
     data.append({'key': 'user_timeout', 'value': 36000, 'intro': '用户登陆以后空闲的超时时间，超时以后需要重新登陆'})
+    data.append({'key': 'del_number', 'value': 10, 'intro': '可以一次性删除的记录数目'})
     state = g.db.insert('setting', data)
     if state[0]:
         return True
@@ -95,9 +96,9 @@ def create_table():
     setting_sql = r'''
               CREATE TABLE IF NOT EXISTS `setting` (
               `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-              `key` VARCHAR(50) NOT NULL COMMENT '设置项' COLLATE 'utf8_general_ci',
-              `value` VARCHAR(50) NOT NULL COLLATE 'utf8_general_ci',
-              `intro` VARCHAR(100) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+              `key` VARCHAR(50) NOT NULL COMMENT '设置项' COLLATE,
+              `value` VARCHAR(50) NOT NULL,
+              `intro` VARCHAR(100) NULL DEFAULT NULL,
               PRIMARY KEY (`id`),
               UNIQUE KEY `key` (`key`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

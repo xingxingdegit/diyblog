@@ -17,11 +17,12 @@ def login(username, password, key):
         if not db_data[0]:
             log.info('func:login|error happen in during database query')
             return False, None
-        if len(db_data[1]) > 1:
+        if db_data[1][0] > 1:
             log.error('func:login|username:{}|info:Incorrect number of users'.format(username))
             return False, None
-        if db_data[1]:
-            if db_data[1][0]['password'] == sha256_password:
+        db_data = db_data[1][1]
+        if db_data:
+            if db_data[0]['password'] == sha256_password:
                 key = key.strip()
                 timestamp = g.redis.get(key).strip()
                 if timestamp:
@@ -30,7 +31,7 @@ def login(username, password, key):
                     setting = g.db.select(
                         'setting', fields=['key', 'value'], where={'key': ['login_prefix_key_timeout', 'user_timeout']})
                     if setting[0]: 
-                        setting = {one_set['key']:one_set['value'] for one_set in setting[1]}
+                        setting = {one_set['key']:one_set['value'] for one_set in setting[1][1]}
                         if ('login_prefix_key_timeout' not in setting) or ('user_timeout' not in setting):
                             log.error('func:login|setting:{}|info:setting about user login have a question'.format(setting))
                             return False, None
@@ -74,7 +75,7 @@ def get_key():
     try:
         setting = g.db.select('setting', fields=['key', 'value'], where={'key': 'login_prefix_key_timeout'})
         if setting[0]:
-            login_prefix_key_timeout = setting[1][0]['value']
+            login_prefix_key_timeout = setting[1][1][0]['value']
             g.redis.set(key, int(timestamp), ex=login_prefix_key_timeout)
             data = True, key
     except Exception:
