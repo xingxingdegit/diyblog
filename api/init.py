@@ -32,6 +32,8 @@ def create_user(data):
 def init_setting():
     data = []
     data.append({'key': 'install_init', 'value': 1, 'intro': '1表示已经初始化过了'})
+#    data.append({'key': 'nickname', 'value': 'aaa', 'intro': '昵称'})
+#    data.append({'key': 'avatar_url', 'value': 'static/image/123.jpg', 'intro': '头像路径'})
     data.append({'key': 'login_prefix_key_timeout', 'value': 300, 
                  'intro': '登录界面获取的安全key超时时间， 这个key与用户名密码共同组成登录验证。'})
     data.append({'key': 'user_timeout', 'value': 36000, 'intro': '用户登陆以后空闲的超时时间，超时以后需要重新登陆'})

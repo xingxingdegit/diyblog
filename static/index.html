@@ -12,14 +12,32 @@
                 width: 100%;
             }
         </style>
+        <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+        <script src="js/index.js" defer></script>
     </head>
     <body>
-        <div style="height:100%; background-color: black;">
-            <div style="background-color:gray;">
-                <p><input /></p>
-                <p><input /></p>
-                <p><input /></p>
-            </div>
+        <div id="app">
+            <span v-bind:title="message">
+                message title 显示在这里
+            </span>
+            <p v-if="seen">{{ message }}</p>
+            <ol>
+                <li v-for="(todo, index) in todos">
+                    {{index}}: {{ todo }}
+                </li>
+            </ol>
+            <ul>
+                <li v-for="(some, key) in somes">
+                    {{key}}: {{ some }}
+                </li>
+            </ul>
+            <input v-model="message" />
+            <button @click="testA(event)">Check</button>
+            <button @click="testB">Check1</button>
+            <button @click="testB('bb')">Check1</button>
         </div>
+
+
+
     </body>
 </html>
