@@ -33,10 +33,10 @@
             }
             .show-websocket {
                 background-color: #000000;
-                height: 200px;
-                overflow: auto;
+                height: 300px;
                 width: 100%;
                 margin-left: 10px;
+                overflow: auto;
             }
             .show-key {
                 color: green;
@@ -56,27 +56,28 @@
                 float: right;
                 clear: right;
             }
+            .show_error_info {
+                color: red;
+            }
         </style>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/vue"></script>
         <script src="static/js/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
         <script src="static/js/init.js" defer></script>
-        <script type="text/javascript">
-            function get_info() {
-            axios.post('init')
-            }
-        </script>
     </head>
     <body>
-        <section>
+        <div id="app">
             <section id="center-wrapper">
                 <section id="init">
-                    <form method="POST" id="userinfo" name="init" action="init" onsubmit="submit_data(this, event)">
+                    <form method="POST" id="userinfo" name="init" action="init" @submit.prevent="is_submit()">
                         <p>
-                            <input name="username" maxlength="35" placeholder="用户" required />
+                            <input name="sitename" maxlength="35" v-model="userdata.sitename" placeholder="网站名称" required />
                         </p>
                         <p>
-                            <input name="password" type="password" autocomplete="off" maxlength="35" placeholder="密码" required />
+                            <input name="username" maxlength="35" v-model="userdata.username" placeholder="用户" required />
+                        </p>
+                        <p>
+                            <input name="password" type="password" v-model="userdata.password" autocomplete="off" maxlength="35" placeholder="密码" required />
                         </p>
                         <p>
                             <button type="submit" id="create_user">创建用户</button>
@@ -84,11 +85,14 @@
                     </form>
                 </section>
                 <section>
-                    <p class="pro-center"><span id="connect"></span></p>
-                    <p class="pro-center show-bar" hidden><progress max="100" value="1"></progress></p>
-                    <section id="pro-content" class="pro-center show-websocket show-bar" hidden></section>
+                    <p class="pro-center"> {{ connect_info }} </p>
+                    <p class="pro-center" v-if="websocket.is_show"><progress max="100" :value="websocket.progress"></progress></p>
+                    <section v-if="websocket.is_show" id="pro-content" class="pro-center show-websocket">
+                        <p v-for="(item, index) in websocket.progress_info" :key="item.index" :class="item.class">{{item.info}}</p>
+                    </section>
+                    <hr />
                 </section>
             </section>
-        </section>
+        </div>
     </body>
 </html>

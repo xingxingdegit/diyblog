@@ -2,6 +2,10 @@ from api.dbpool import with_db
 from flask import g
 import os
 from hashlib import sha256
+import logging
+import traceback
+
+log = logging.getLogger(__name__)
 
 @with_db('write')
 def create_user(data):
@@ -29,22 +33,27 @@ def create_user(data):
     return False
 
 @with_db('write')
-def init_setting():
-    data = []
-    data.append({'key': 'install_init', 'value': 1, 'intro': '1表示已经初始化过了'})
-#    data.append({'key': 'nickname', 'value': 'aaa', 'intro': '昵称'})
-#    data.append({'key': 'avatar_url', 'value': 'static/image/123.jpg', 'intro': '头像路径'})
-    data.append({'key': 'login_prefix_key_timeout', 'value': 300, 
-                 'intro': '登录界面获取的安全key超时时间， 这个key与用户名密码共同组成登录验证。'})
-    data.append({'key': 'user_timeout', 'value': 36000, 'intro': '用户登陆以后空闲的超时时间，超时以后需要重新登陆'})
-    data.append({'key': 'del_number', 'value': 10, 'intro': '可以一次性删除的记录数目'})
-    data.append({'key': 'login_blacklist_timeout', 'value': 600, 'intro': '登录黑名单的封锁时间,秒'})
-    data.append({'key': 'login_fail_count', 'value': 10, 'intro': '连续登录失败10次，进登录黑名单'})
-    data.append({'key': 'login_fail_lasttime', 'value': 60, 'intro': '两次登录失败间隔不超过这个时间，就会添加失败计数，秒'})
-    state = g.db.insert('setting', data)
-    if state[0]:
-        return True
-    return False
+def init_setting(data):
+    try:
+        set_data = []
+        sitename = data.get('sitename', '').strip()
+        set_data.append({'key': 'install_init', 'value': 1, 'intro': '1表示已经初始化过了'})
+        set_data.append({'key': 'nickname', 'value': sitename, 'intro': '昵称'})
+        set_data.append({'key': 'avatar_url', 'value': 'static/image/123.jpg', 'intro': '头像路径'})
+        set_data.append({'key': 'login_prefix_key_timeout', 'value': 300, 
+                     'intro': '登录界面获取的安全key超时时间， 这个key与用户名密码共同组成登录验证。'})
+        set_data.append({'key': 'user_timeout', 'value': 36000, 'intro': '用户登陆以后空闲的超时时间，超时以后需要重新登陆'})
+        set_data.append({'key': 'del_number', 'value': 10, 'intro': '可以一次性删除的记录数目'})
+        set_data.append({'key': 'login_blacklist_timeout', 'value': 600, 'intro': '登录黑名单的封锁时间,秒'})
+        set_data.append({'key': 'login_fail_count', 'value': 10, 'intro': '连续登录失败10次，进登录黑名单'})
+        set_data.append({'key': 'login_fail_lasttime', 'value': 60, 'intro': '两次登录失败间隔不超过这个时间，就会添加失败计数，秒'})
+        state = g.db.insert('setting', data)
+        if state[0]:
+            return True
+        return False
+    except Exception:
+        log.error(traceback.format_exc())
+        return False
 
    
 # 初始化表
@@ -101,9 +110,9 @@ def create_table():
     setting_sql = r'''
               CREATE TABLE IF NOT EXISTS `setting` (
               `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-              `key` VARCHAR(50) NOT NULL COMMENT '设置项' COLLATE,
+              `key` VARCHAR(50) NOT NULL COMMENT '设置项',
               `value` VARCHAR(50) NOT NULL,
-              `intro` VARCHAR(100) NULL DEFAULT NULL,
+              `intro` VARCHAR(100) DEFAULT NULL,
               PRIMARY KEY (`id`),
               UNIQUE KEY `key` (`key`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

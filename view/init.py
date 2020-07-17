@@ -36,13 +36,14 @@ log = logging.getLogger(__name__)
 @base_log
 def init(data):
     emit('init', {'stage': 'start', 'data': 'begin...'})
+    sitename = data.get('sitename', '').strip()
     username = data.get('username', '').strip()
     password = data.get('password', '').strip()
 
     beginning = {'stage': 'in', 'data': {}}
     beginning['data'].update({'tag': 'check_user', 'type': 'key', 'data': '用户信息检查', 'state': None})
-    emit('init', beginning)
-    if username and password:
+    emit('init', beginning, callback=False)
+    if username and password and sitename:
         beginning['data'].update({'tag': 'check_user', 'type': 'value', 'data': '成功', 'state': 'success'})
         emit('init', beginning)
 
@@ -80,7 +81,7 @@ def init(data):
                 return False
             beginning['data'].update({'tag': 'init_setting', 'type': 'key', 'data': '添加默认设置', 'state': None})
             emit('init', beginning)
-            init_setting_state = init_setting()
+            init_setting_state = init_setting(data)
             if init_setting_state:
                 beginning['data'].update({'tag': 'init_setting', 'type': 'value', 'data': '成功', 'state': 'success'})
                 emit('init', beginning)

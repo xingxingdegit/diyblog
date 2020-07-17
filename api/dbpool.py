@@ -340,6 +340,7 @@ class DbGetConnect():
 
     def query(self, sql):
         try:
+            log.info('func:query|sql: {}'.format(sql))
             data = self.cur.execute(sql)
         except Exception:
             self.rollback()

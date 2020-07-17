@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_socketio import SocketIO, send, emit
-#from config import secret_key
 import logging
 # app func
 from view import hello
@@ -34,6 +33,6 @@ app.add_url_rule(rule='/test', view_func=hello.test_form, methods=['GET','POST']
 
 # websocket event
 socketio.on_event('init', handler=init)
-socketio.on_event('connect', handler=)
+#socketio.on_event('connect', handler=)
 socketio.on_event('message', handler=message)
 socketio.on_event('json', handler=json_data)
