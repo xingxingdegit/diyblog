@@ -11,6 +11,7 @@ from api.init import create_user, create_table, init_setting
 from flask_socketio import SocketIO, send, emit
 import os
 import base64
+from api.auth import auth_mode
 
 log = logging.getLogger(__name__)
 
@@ -34,67 +35,71 @@ log = logging.getLogger(__name__)
 #        return jsonify({'success': False, 'data': '信息不完整'})
 
 @base_log
+@auth_mode('init')
 def init(data):
     emit('init', {'stage': 'start', 'data': 'begin...'})
     sitename = data.get('sitename', '').strip()
     username = data.get('username', '').strip()
     password = data.get('password', '').strip()
+    
+    state = False
 
     beginning = {'stage': 'in', 'data': {}}
-    beginning['data'].update({'tag': 'check_user', 'type': 'key', 'data': '用户信息检查', 'state': None})
+    beginning['data'].update({'tag': 'check_user', 'type': 'key', 'data': '用户信息检查', 'state': None, 'progress': 5})
     emit('init', beginning, callback=False)
     if username and password and sitename:
-        beginning['data'].update({'tag': 'check_user', 'type': 'value', 'data': '成功', 'state': 'success'})
+        beginning['data'].update({'tag': 'check_user', 'type': 'value', 'data': '成功', 'state': 'success', 'progress': 20})
         emit('init', beginning)
 
-        beginning['data'].update({'tag': 'create_table', 'type': 'key', 'data': '创建数据表', 'state': None})
+        beginning['data'].update({'tag': 'create_table', 'type': 'key', 'data': '创建数据表', 'state': None, 'progress': 25})
         emit('init', beginning)
         create_table_state = create_table()
         if create_table_state:
-            beginning['data'].update({'tag': 'create_table', 'type': 'value', 'data': '成功', 'state': 'success'})
+            beginning['data'].update({'tag': 'create_table', 'type': 'value', 'data': '成功', 'state': 'success', 'progress': 40})
             emit('init', beginning)
 
             # 用户加密cookie的秘钥，cookie里存放用户名与sessioinID, 没有密码相关信息.
-            beginning['data'].update({'tag': 'user_key', 'type': 'key', 'data': '创建用户秘钥', 'state': None})
+            beginning['data'].update({'tag': 'user_key', 'type': 'key', 'data': '创建用户秘钥', 'state': None, 'progress': 45})
             emit('init', beginning)
             cookie_key = base64.b64encode(os.urandom(21)).decode('utf-8')
             if cookie_key:
-                beginning['data'].update({'tag': 'user_key', 'type': 'value', 'data': '成功', 'state': 'success'})
+                beginning['data'].update({'tag': 'user_key', 'type': 'value', 'data': '成功', 'state': 'success', 'progress': 60})
                 emit('init', beginning)
             else:
-                beginning['data'].update({'tag': 'user_key', 'type': 'value', 'data': '失败', 'state': 'fail'})
+                beginning['data'].update({'tag': 'user_key', 'type': 'value', 'data': '失败', 'state': 'fail', 'progress': 45})
                 emit('init', beginning)
                 emit('init', {'stage': 'end', 'data': 'end'})
                 return False
 
-            beginning['data'].update({'tag': 'create_user', 'type': 'key', 'data': '创建用户', 'state': None})
+            beginning['data'].update({'tag': 'create_user', 'type': 'key', 'data': '创建用户', 'state': None, 'progress': 65})
             emit('init', beginning)
             data['cookie_key'] = cookie_key
             create_user_state = create_user(data)
             if create_user_state:
-                beginning['data'].update({'tag': 'create_user', 'type': 'value', 'data': '成功', 'state': 'success'})
+                beginning['data'].update({'tag': 'create_user', 'type': 'value', 'data': '成功', 'state': 'success', 'progress': 80})
                 emit('init', beginning)
             else:
-                beginning['data'].update({'tag': 'create_user', 'type': 'value', 'data': '失败', 'state': 'fail'})
+                beginning['data'].update({'tag': 'create_user', 'type': 'value', 'data': '失败', 'state': 'fail', 'progress': 65})
                 emit('init', beginning)
                 emit('init', {'stage': 'end', 'data': 'end'})
                 return False
-            beginning['data'].update({'tag': 'init_setting', 'type': 'key', 'data': '添加默认设置', 'state': None})
+            beginning['data'].update({'tag': 'init_setting', 'type': 'key', 'data': '添加默认设置', 'state': None, 'progress': 85})
             emit('init', beginning)
             init_setting_state = init_setting(data)
             if init_setting_state:
-                beginning['data'].update({'tag': 'init_setting', 'type': 'value', 'data': '成功', 'state': 'success'})
+                beginning['data'].update({'tag': 'init_setting', 'type': 'value', 'data': '成功', 'state': 'success', 'progress': 100})
                 emit('init', beginning)
+                state = True
             else:
-                beginning['data'].update({'tag': 'init_setting', 'type': 'value', 'data': '失败', 'state': 'fail'})
+                beginning['data'].update({'tag': 'init_setting', 'type': 'value', 'data': '失败', 'state': 'fail', 'progress': 85})
                 emit('init', beginning)
         else:
-            beginning['data'].update({'tag': 'create_table', 'type': 'value', 'data': '失败', 'state': 'fail'})
+            beginning['data'].update({'tag': 'create_table', 'type': 'value', 'data': '失败', 'state': 'fail', 'progress': 25})
             emit('init', beginning)
     else:
-        beginning['data'].update({'tag': 'check_user', 'type': 'value', 'data': '失败', 'state': 'fail'})
+        beginning['data'].update({'tag': 'check_user', 'type': 'value', 'data': '失败', 'state': 'fail', 'progress': 5})
         emit('init', beginning)
-    emit('init', {'stage': 'end', 'data': 'end'})
+    emit('init', {'stage': 'end', 'data': 'end', 'state': state})
 
 
     

@@ -251,9 +251,12 @@ class DbGetConnect():
                         or_term.append('`{}`="{}"'.format(key, one_value))
                 if len(or_term) > 1:
                     or_term = '({})'.format(' or '.join(or_term))
+                else:
+                    or_term = or_term[0]
 
                 where_sql.append(or_term)
             else:
+                log.debug('func:where|where_sql:{}'.format(where_sql))
                 return ' and '.join(where_sql)
         return False
 
@@ -288,9 +291,11 @@ class DbGetConnect():
         if not all_fields:
             return False, None
         if fields == '*':
-            fields = ','.join(['`{}`'] * len(all_fields)).format(all_fields)
+            fields_list = all_fields
+            fields = ','.join(['`{}`'] * len(all_fields)).format(*all_fields)
         elif isinstance(fields, list):
-            fields = ','.join(['`{}`'] * len(fields)).format(fields)
+            fields_list = fields
+            fields = ','.join(['`{}`'] * len(fields)).format(*fields)
         else:
             log.error('func:select|fields:{}|info:fields type is error')
             return False, None
@@ -304,7 +309,7 @@ class DbGetConnect():
 
         log.info('func:select|sql: {}'.format(sql))
         number = self.cur.execute(sql)
-        return_data = number, [dict(zip(fields.split(','), onedata)) for onedata in self.cur.fetchall()]
+        return_data = number, [dict(zip(fields_list, onedata)) for onedata in self.cur.fetchall()]
         return True, return_data
 
     def insert(self, table, value):

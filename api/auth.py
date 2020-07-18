@@ -1,5 +1,5 @@
 from flask import request, g
-from dbpool import with_db, with_redis
+from api.dbpool import with_db, with_redis
 import traceback
 import base64
 import datetime
@@ -10,9 +10,10 @@ log = logging.getLogger(__name__)
 
 @with_db('read')
 def init_auth():
+    from flask_socketio import disconnect
     try:
         tables = g.db.query('show tables;')
-        if not tables:
+        if tables[0] and (tables[1] == 0):
             return True
         setting = g.db.select('setting', fields=['key', 'value'], where={'key': 'install_init'})
         if setting[0]:
@@ -22,6 +23,8 @@ def init_auth():
                     return True
     except Exception:
         log.error(traceback.format_exc())
+    disconnect()
+    log.error('func:init_auto|repeat init')
     return False
 
 
@@ -48,4 +51,16 @@ def client_ip_unsafe():
             log.error(traceback.format_exc())
     return False
 
+
+
+def auth_mode(mode):
+    def wrapper(func):
+        def inner(*args, **kwargs):
+            if mode == 'init':
+                if init_auth():
+                    return func(*args, **kwargs)
+            else:
+                pass
+        return inner
+    return wrapper
 

@@ -56,4 +56,7 @@ DATABASES = {
     },
 }
 
-
+try:
+    from config_local import *
+except Exception:
+    pass

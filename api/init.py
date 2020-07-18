@@ -47,7 +47,7 @@ def init_setting(data):
         set_data.append({'key': 'login_blacklist_timeout', 'value': 600, 'intro': '登录黑名单的封锁时间,秒'})
         set_data.append({'key': 'login_fail_count', 'value': 10, 'intro': '连续登录失败10次，进登录黑名单'})
         set_data.append({'key': 'login_fail_lasttime', 'value': 60, 'intro': '两次登录失败间隔不超过这个时间，就会添加失败计数，秒'})
-        state = g.db.insert('setting', data)
+        state = g.db.insert('setting', set_data)
         if state[0]:
             return True
         return False

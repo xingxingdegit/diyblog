@@ -18,14 +18,22 @@
                 width: 350px;
                 margin-left: auto;
                 margin-right: auto;
-                margin-top: 10%;
+                margin-top: 8%;
             }
             input {
                 width: 100%;
             }
             button {
                 width: 100px;
-                margin-left: 70px;
+            }
+            #index_button {
+                margin-right: 25%;
+            }
+            #login_login {
+                margin-left: 25%;
+            }
+            form:only-child {
+                text-align: center;
             }
             .pro-center {
                 text-align: center;
@@ -59,6 +67,13 @@
             .show_error_info {
                 color: red;
             }
+            nav {
+                width: 60%;
+                text-align: center; 
+                margin: auto;
+                margin-top: 50px;
+
+            }
         </style>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/vue"></script>
@@ -67,6 +82,12 @@
     </head>
     <body>
         <div id="app">
+            <header>
+                <nav v-if="show_nav">
+                    <a href="static/index.html"><button id="index_button" type="button">首页</button></a> 
+                    <a href="static/login.html"><button id="login_button" type="button">登录</button></a>
+                </nav>
+            </header>
             <section id="center-wrapper">
                 <section id="init">
                     <form method="POST" id="userinfo" name="init" action="init" @submit.prevent="is_submit()">
@@ -80,7 +101,7 @@
                             <input name="password" type="password" v-model="userdata.password" autocomplete="off" maxlength="35" placeholder="密码" required />
                         </p>
                         <p>
-                            <button type="submit" id="create_user">创建用户</button>
+                            <button  type="submit" id="create_user">创建用户</button>
                         </p>
                     </form>
                 </section>
@@ -88,7 +109,7 @@
                     <p class="pro-center"> {{ connect_info }} </p>
                     <p class="pro-center" v-if="websocket.is_show"><progress max="100" :value="websocket.progress"></progress></p>
                     <section v-if="websocket.is_show" id="pro-content" class="pro-center show-websocket">
-                        <p v-for="(item, index) in websocket.progress_info" :key="item.index" :class="item.class">{{item.info}}</p>
+                        <p v-for="(item, index) in websocket.progress_info" :class="item.class">{{item.info}}</p>
                     </section>
                     <hr />
                 </section>
