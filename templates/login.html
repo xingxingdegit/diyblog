@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>首页</title>
+        <base href="http://127.0.0.1:5000" />
+        <!--
+        <link rel="shortcut icon" href="static/123.jpg" type="image/jpeg" />
+        -->
+        <meta name="keywords" content="k8s,helm,前端,python" />
+        <meta name="author" content="大番茄" />
+        <meta name="description" content="主页" />
+        <meta charset="UTF-8" />
+        <style type="text/css">
+            #login {
+                width: 250px;
+                margin-left: auto;
+                margin-right: auto;
+                margin-top: 12%;
+            }
+            input {
+                width: 100%;
+            }
+            p {
+                width: 250px;
+                text-align: center;
+            }
+            nav {
+                text-align: right;
+            }
+            div {
+                background-color: #bcbcbc;
+            }
+        </style>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script type="text/javascript">
+            axios.get('login')
+              .then(function(response) {
+                  var other = document.getElementById("other")
+                  other.value = response.data
+              })
+              .catch(function(error) {
+                  console.log(error)
+              })
+        </script>
+
+    </head>
+    <body>
+        <header>
+            <nav>
+                <a href="static/index.html"><button type="button">首页</button></a>
+            </nav>
+        </header>
+        <div>
+            <section id="login">
+                <p>后台登录</p>
+                <form method="POST" name="login" action="login">
+                    <p>
+                        <input name="username" maxlength="35" placeholder="用户" required />
+                    </p>
+                    <p>
+                        <input name="password" autocomplete="off" maxlength="35" placeholder="密码" required />
+                    </p>
+                    <p>
+                        <input id="other" name="other" autocomplete="off" maxlength="35" hidden required value="abc" />
+                    </p>
+                    <p>
+                        <button type="submit">登录</button>
+                    </p>
+                </form>
+            </section>
+        </div>
+    </body>
+</html>
