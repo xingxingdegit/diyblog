@@ -37,11 +37,13 @@ app.add_url_rule(rule='/test', view_func=test_form, methods=['POST'])
 
 # admin manager
 from view.page import admin_login_url
+from view.page import back_manage
 from view.login import login
 from view.login import get_key
 app.add_url_rule(rule='/admin/<path:admin_login_url>', view_func=admin_login_url, methods=['GET'])
 app.add_url_rule(rule='/login/getkey', view_func=get_key, methods=['GET'])
 app.add_url_rule(rule='/login/login', view_func=login, methods=['POST'])
+app.add_url_rule(rule='/admin/back_manage', view_func=back_manage, methods=['GET'])
 #####################################
 
 # websocket event

@@ -40,3 +40,6 @@ def admin_login_url(admin_login_url):
         log.error(traceback.format_exc())
     return render_template('404.html'), 404
 
+
+def back_manage():
+    return render_template('back.html')

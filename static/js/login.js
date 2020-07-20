@@ -16,6 +16,9 @@ var app = new Vue({
                 })
                 .then(function(response) {
                     app.login_state = response.data.success
+                    if (response.data.success) {
+                        document.location.pathname = '/admin/back_manage'
+                    }
                 })
                 .catch(function(error) {
                     console.log(error)

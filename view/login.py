@@ -28,9 +28,12 @@ def login():
             data = user.login(username, password, key)
             # 响应对象的设置也打算在这里设置。 还有cookie打算加密。
             if data[0]:
-                session_id = data[1]
+                session = data[1]
                 return_data = {'success': True, 'data': None}
-                response = make_response()
+                response = make_response(return_data)
+                response.set_cookie('sessionId', session)
+                response.status_code = 200
+                return response
 
         else:
             log.error('func:login|username:{}|password:***|info:login information is Incomplete '.format(username))

@@ -1,5 +1,6 @@
 import logging
 import random
+from cryptography.fernet import Fernet
 from flask import g
 from api.dbpool import  with_db, with_redis
 import datetime
@@ -46,7 +47,10 @@ def login(username, password, key):
                             }
                             g.redis.hmset(username, session_data)
                             g.redis.expire(username, setting['user_timeout'])
-                            return True, session_id
+                            cookie_key = db_data[0]['cookie_key']
+                            cipher = Fernet(cookie_key.encode('utf-8'))
+                            session = cipher.encrypt(('{} {}'.format(username, session_id)).encode('utf-8'))
+                            return True, session
                         else:
                             log.info('func:login|user:{}|login_prefix_key is timeout'.format(username))
                     else:
