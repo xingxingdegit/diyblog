@@ -1,9 +1,7 @@
 import eventlet
 eventlet.monkey_patch()
-import logging
 import sys
 from pathlib import Path
-#from flask_socketio import SocketIO
 sys.path.append(str(Path(__file__).absolute().parent / 'conf'))
 from config import listen
 # 加载一些初始化的模块

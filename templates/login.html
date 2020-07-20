@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
     <head>
-        <title>首页</title>
+        <title>后台登录</title>
         <base href="http://127.0.0.1:5000" />
         <!--
         <link rel="shortcut icon" href="static/123.jpg" type="image/jpeg" />
@@ -17,6 +17,16 @@
                 margin-right: auto;
                 margin-top: 12%;
             }
+            #login_true {
+                color: green;
+                text-align: center;
+                width: 100%;
+            }
+            #login_fail {
+                color: red;
+                text-align: center;
+                width: 100%;
+            }
             input {
                 width: 100%;
             }
@@ -27,47 +37,40 @@
             nav {
                 text-align: right;
             }
-            div {
+            #frame {
                 background-color: #bcbcbc;
             }
         </style>
+        <script src="https://cdn.jsdelivr.net/npm/vue"></script>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-        <script type="text/javascript">
-            axios.get('login')
-              .then(function(response) {
-                  var other = document.getElementById("other")
-                  other.value = response.data
-              })
-              .catch(function(error) {
-                  console.log(error)
-              })
-        </script>
-
+        <script src="static/js/login.js" defer></script>
     </head>
     <body>
         <header>
             <nav>
-                <a href="static/index.html"><button type="button">首页</button></a>
+                <a href="/"><button type="button">首页</button></a>
             </nav>
         </header>
-        <div>
+        <div id="app">
+
+        <div id="frame">
             <section id="login">
                 <p>后台登录</p>
-                <form method="POST" name="login" action="login">
+                <form method="POST" @submit.prevent="is_submit()">
                     <p>
-                        <input name="username" maxlength="35" placeholder="用户" required />
+                        <input v-model="username" name="username" maxlength="35" placeholder="用户" required />
                     </p>
                     <p>
-                        <input name="password" autocomplete="off" maxlength="35" placeholder="密码" required />
-                    </p>
-                    <p>
-                        <input id="other" name="other" autocomplete="off" maxlength="35" hidden required value="abc" />
+                        <input v-model="password" name="password" type="password" autocomplete="off" maxlength="35" placeholder="密码" required />
                     </p>
                     <p>
                         <button type="submit">登录</button>
                     </p>
                 </form>
             </section>
+        </div>
+        <p v-if="login_state===true" id="login_true">认证成功</p>
+        <p v-else-if="login_state===false" id="login_fail">认证失败</p>
         </div>
     </body>
 </html>

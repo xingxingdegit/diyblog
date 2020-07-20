@@ -37,8 +37,10 @@ def init_setting(data):
     try:
         set_data = []
         sitename = data.get('sitename', '').strip()
+        admin_login_url = data.get('admin_url', 'admin_back').strip()
         set_data.append({'key': 'install_init', 'value': 1, 'intro': '1表示已经初始化过了'})
         set_data.append({'key': 'nickname', 'value': sitename, 'intro': '昵称'})
+        set_data.append({'key': 'admin_login_url', 'value': admin_login_url, 'intro': '后台登录地址'})
         set_data.append({'key': 'avatar_url', 'value': 'static/image/123.jpg', 'intro': '头像路径'})
         set_data.append({'key': 'login_prefix_key_timeout', 'value': 300, 
                      'intro': '登录界面获取的安全key超时时间， 这个key与用户名密码共同组成登录验证。'})
@@ -101,7 +103,7 @@ def create_table():
               `password` varchar(100) NOT NULL,
               `phone` varchar(20) DEFAULT NULL COMMENT '电话',
               `email` varchar(50) DEFAULT NULL COMMENT '邮件',
-              `cookie_key` varchar(28) DEFAULT NULL COMMENT '加密cookie的key',
+              `cookie_key` varchar(50) DEFAULT NULL COMMENT '加密cookie的key',
               `intro` varchar(100) DEFAULT NULL,
               PRIMARY KEY (`id`),
               UNIQUE KEY `username` (`username`)

@@ -4,6 +4,7 @@ var app = new Vue({
     data: {
         userdata: {
             sitename: '',
+            admin_url: '',
             username: '',
             password: '',
         },
@@ -27,6 +28,11 @@ var app = new Vue({
             }
         },
 
+    },
+    computed: {
+        all_admin_url: function () {
+            return 'admin/' + this.userdata.admin_url
+        }
     }
 })
 

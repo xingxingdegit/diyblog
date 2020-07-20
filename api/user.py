@@ -36,8 +36,8 @@ def login(username, password, key):
                             log.error('func:login|setting:{}|info:setting about user login have a question'.format(setting))
                             return False, None
                         if (timestamp_now - int(timestamp)) < setting['login_prefix_key_timeout']:
-                            session_id = [0] * 20
-                            for i in range(20):
+                            session_id = [0] * 30
+                            for i in range(30):
                                 session_id[i] = random.choice('0123456789')
                             session_id = '{}{}'.format(''.join(session_id), timestamp_now)
                             session_data = {

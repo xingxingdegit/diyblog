@@ -1,16 +1,15 @@
+from flask import Flask, session, redirect, url_for, escape, request, jsonify
+from flask_socketio import SocketIO, send, emit
+from cryptography.fernet import Fernet
 import traceback
-from flask import jsonify
-from flask import request
-from api import user
 import logging
-from flask import Flask, session, redirect, url_for, escape, request
+import os
 import datetime
 import json
+#
 from api.logger import base_log
 from api.init import create_user, create_table, init_setting
-from flask_socketio import SocketIO, send, emit
-import os
-import base64
+from api import user
 from api.auth import auth_mode
 
 log = logging.getLogger(__name__)
@@ -61,7 +60,7 @@ def init(data):
             # 用户加密cookie的秘钥，cookie里存放用户名与sessioinID, 没有密码相关信息.
             beginning['data'].update({'tag': 'user_key', 'type': 'key', 'data': '创建用户秘钥', 'state': None, 'progress': 45})
             emit('init', beginning)
-            cookie_key = base64.b64encode(os.urandom(21)).decode('utf-8')
+            cookie_key = Fernet.generate_key().decode()
             if cookie_key:
                 beginning['data'].update({'tag': 'user_key', 'type': 'value', 'data': '成功', 'state': 'success', 'progress': 60})
                 emit('init', beginning)
@@ -100,23 +99,3 @@ def init(data):
         beginning['data'].update({'tag': 'check_user', 'type': 'value', 'data': '失败', 'state': 'fail', 'progress': 5})
         emit('init', beginning)
     emit('init', {'stage': 'end', 'data': 'end', 'state': state})
-
-
-    
-def test_socket(data):
-    print('test_socket: {}'.format(data))
-    log.info(data)
-    log.info('11111111111')
-    return '1111111'
-  
-def test_socket1():
-    print('test_socket: {}'.format('2222222'))
-    log.info('222222222')
-    return '22222222'
-
-def message(data1):
-    log.info('data1:{}'.format(data1))
-    send(data1)
-
-def json_data(data):
-    log.info('json: {}'.format(data))
