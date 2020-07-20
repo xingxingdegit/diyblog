@@ -19,6 +19,7 @@ def test_form():
         form = request.form
         args = request.args
         files = request.files
+        json_data = request.get_json()
     #    print('form: {}'.format(type(form)))
     #    print('args: {}'.format(type(args)))
     #    print('files: {}'.format(type(files)))
@@ -46,6 +47,7 @@ def test_form():
     response_data = [
         {'args': args},
         {'form': form},
+        {'josn_data': json_data},
         {'path': path}, 
         {'full_path': full_path},
         {'url': url},

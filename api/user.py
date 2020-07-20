@@ -23,8 +23,7 @@ def login(username, password, key):
         db_data = db_data[1][1]
         if db_data:
             if db_data[0]['password'] == sha256_password:
-                key = key.strip()
-                timestamp = g.redis.get(key).strip()
+                timestamp = g.redis.get(key)
                 if timestamp:
                     g.redis.delete(key)
                     timestamp_now = int(datetime.datetime.now().timestamp())
