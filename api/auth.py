@@ -4,9 +4,31 @@ import traceback
 import base64
 import datetime
 import logging
+import functools
 
 log = logging.getLogger(__name__)
 
+@with_db('read')
+def admin_url_auth(admin_url):
+    try:
+        setting = g.db.select('setting', fields=['value'], where={'key': 'admin_url'})
+        if setting[0]:
+            if setting[1][0]:
+                if admin_url == setting[1][1][0]['value']:
+                    return True
+    except Exception:
+        log.error(traceback.format_exc())
+    return False
+
+def admin_url_auth_wrapper(func):
+    @functools.wraps(func)
+    def wrapper(admin_url, *args, **kwargs):
+        if admin_url_auth(admin_url):
+            resp_data = func(*args, **kwargs)
+            return resp_data
+        else:
+            return {'sucess': False, 'info': '条件认证失败'}, 401
+    return wrapper
 
 @with_db('read')
 def init_auth():
@@ -55,6 +77,7 @@ def client_ip_unsafe():
 
 def auth_mode(mode):
     def wrapper(func):
+        @functools.wraps(func)
         def inner(*args, **kwargs):
             if mode == 'init':
                 if init_auth():

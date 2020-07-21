@@ -7,16 +7,19 @@ import datetime
 import random
 import logging
 from api.logger import base_log
+from api.auth import admin_url_auth, admin_url_auth_wrapper
 
 log = logging.getLogger(__name__)
 
 @base_log
+@admin_url_auth_wrapper
 def get_key():
     if request.method == 'GET':
         data = user.get_key()
         if data[0]:
             return jsonify({'success': True, 'data': data[1]})
      
+@admin_url_auth_wrapper
 def login():
     return_data = {'success': False, 'data': None}
     try:

@@ -3,6 +3,7 @@ import logging
 import traceback
 from api.logger import base_log
 from api.dbpool import with_db
+from api.auth import admin_url_auth, admin_url_auth_wrapper
 
 log = logging.getLogger(__name__)
 
@@ -23,23 +24,15 @@ def init_page():
 def test_page(other_url):
     log.info('1111111111')
     log.info('11111111111,other_url: {}'.format(other_url))
-    return render_template('404.html'), 200
+    return other_url, 200
 
 
 # 后台登录
 @base_log
-@with_db('read')
-def admin_login_url(admin_login_url):
-    try:
-        setting = g.db.select('setting', fields=['value'], where={'key': 'admin_login_url'})
-        if setting[0]:
-            if setting[1][0]:
-                if admin_login_url == setting[1][1][0]['value']:
-                    return render_template('login.html')
-    except Exception:
-        log.error(traceback.format_exc())
-    return render_template('404.html'), 404
+@admin_url_auth_wrapper
+def admin_login_page():
+    return render_template('login.html')
 
-
+@admin_url_auth_wrapper
 def back_manage():
     return render_template('back.html')

@@ -9,7 +9,7 @@ var app = new Vue({
     methods: {
         is_submit: function() {
             if (this.username && this.password) {
-                axios.post('/login/login', {
+                axios.post(document.location.pathname + '/login', {
                     username: this.username,
                     password: this.password,
                     other: this.other,
@@ -17,7 +17,7 @@ var app = new Vue({
                 .then(function(response) {
                     app.login_state = response.data.success
                     if (response.data.success) {
-                        document.location.pathname = '/admin/back_manage'
+                        document.location.pathname = document.location.pathname + '/back_manage'
                     }
                 })
                 .catch(function(error) {
@@ -31,7 +31,7 @@ var app = new Vue({
     },
 
     created: function() {
-        axios.get('/login/getkey')
+        axios.get(document.location.pathname + '/getkey')
         .then(function(response) {
             app.other = response.data.data
         })
