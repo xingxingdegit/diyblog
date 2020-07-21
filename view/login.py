@@ -37,7 +37,11 @@ def login():
                 response.set_cookie('sessionId', session)
                 response.status_code = 200
                 return response
-
+            else:
+                if data[1]:
+                    return_data['data'] = data[1]
+                    response = make_response(return_data)
+                    return response
         else:
             log.error('func:login|username:{}|password:***|info:login information is Incomplete '.format(username))
     except Exception:

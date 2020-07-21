@@ -4,6 +4,7 @@ var app = new Vue({
         username: '',
         password: '',
         login_state: '',
+        login_info: '',
         other: '',
     },
     methods: {
@@ -17,7 +18,11 @@ var app = new Vue({
                 .then(function(response) {
                     app.login_state = response.data.success
                     if (response.data.success) {
+                        app.login_info = '认证成功'
                         document.location.pathname = document.location.pathname + '/back_manage'
+                    }else{
+                        console.log(response.data.data)
+                        app.login_info = response.data.data || '认证失败'
                     }
                 })
                 .catch(function(error) {

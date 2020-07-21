@@ -69,8 +69,8 @@
                 </form>
             </section>
         </div>
-        <p v-if="login_state===true" id="login_true">认证成功</p>
-        <p v-else-if="login_state===false" id="login_fail">认证失败</p>
+        <p v-if="login_state===true" id="login_true">{{'{{login_info}}'}}</p>
+        <p v-else-if="login_state===false" id="login_fail">{{'{{login_info}}'}}</p>
         </div>
     </body>
 </html>

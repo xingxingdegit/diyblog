@@ -3,6 +3,7 @@ import random
 from cryptography.fernet import Fernet
 from flask import g
 from api.dbpool import  with_db, with_redis
+from api.auth import client_ip_unsafe
 import datetime
 from hashlib import sha256
 import traceback
@@ -10,6 +11,7 @@ import traceback
 
 log = logging.getLogger(__name__)
 
+@client_ip_unsafe
 @with_db('read')
 def login(username, password, key):
     sha256_password = sha256(password.encode('utf-8')).hexdigest()
@@ -59,8 +61,10 @@ def login(username, password, key):
                     log.info('func:login|user:{}|login_prefix_key is timeout or not exist'.format(username))
             else:
                 log.info('func:login|user:{}|password is error'.format(username))
+                return False, False
         else:
             log.info('func:login|user:{}|not found user'.format(username))
+            return False, False
     except Exception:
         log.error(traceback.format_exc())
 
