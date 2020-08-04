@@ -1,5 +1,7 @@
 from flask import request, g, render_template
 from api.dbpool import with_db, with_redis
+from cryptography.fernet import Fernet
+from flask_socketio import disconnect
 import traceback
 import base64
 import datetime
@@ -15,41 +17,75 @@ def admin_url_auth(admin_url):
         if setting[0]:
             if setting[1][0]:
                 if admin_url == setting[1][1][0]['value']:
-                    return True
+                    return True, ''
     except Exception:
         log.error(traceback.format_exc())
-    return False
+    return False, 'not fund url'
 
-def admin_url_auth_wrapper(func):
-    @functools.wraps(func)
-    def wrapper(admin_url, *args, **kwargs):
-        if admin_url_auth(admin_url):
-            resp_data = func(*args, **kwargs)
-            return resp_data
-        else:
-            return render_template('404.html'), 404
+def admin_url_auth_wrapper(r_type):
+    def wrapper(func):
+        @functools.wraps(func)
+        def inner(admin_url, *args, **kwargs):
+            state = admin_url_auth(admin_url)[0]:
+            if state:
+                resp_data = func(*args, **kwargs)
+                return resp_data
+            else:
+                if r_type == 'page':
+                    return render_template('404.html'), 404
+                elif r_type == 'api':
+                    return state
+                else:
+                    pass
+        return inner
     return wrapper
 
+# 由前端决定是否跳转
+@with_redis
+def check_login_state():
+    cookie = request.cookies
+    log.error('cookie: {}'.format(cookie))
+    username = cookie.get('username')
+    session = cookie.get('session')
+    if not (username and session):
+        return False, 'auth_invalid'
+    user_state = g.redis.hgetall(username)
+    if not user_state:
+        return False, 'auth_invalid'
+    timestamp_now = int(datetime.datetime.now().timestamp())
+    try:
+        if user_state['active'] == 'online':
+            if (timestamp_now - int(user_state['lasttime'])) < int(user_state['timeout']):
+                cookie_key = user_state['cookie_key']
+                cipher = Fernet(cookie_key.encode('utf-8'))
+                session_decode = cipher.decrypt(session.encode('utf-8')).decode('utf-8')
+                log.info(session_decode)
+
+    except Exception:
+        log.error(traceback.format_exc())
+        return False, 'auth_invalid'
+
+# only init
 @with_db('read')
 def init_auth():
-    from flask_socketio import disconnect
     try:
         tables = g.db.query('show tables;')
         if tables[0] and (tables[1] == 0):
-            return True
+            return True, ''
         setting = g.db.select('setting', fields=['key', 'value'], where={'key': 'install_init'})
         if setting[0]:
             if setting[1][0]:
                 init = int(setting[1][1][0]['value'])
                 if init == 0:
-                    return True
+                    return True, ''
     except Exception:
         log.error(traceback.format_exc())
     disconnect()
     log.error('func:init_auto|repeat init')
-    return False
+    return False, ''
 
 
+# only login
 def client_ip_unsafe(func):
     @with_db('read')
     @functools.wraps(func)
@@ -108,10 +144,16 @@ def auth_mode(mode):
         @functools.wraps(func)
         def inner(*args, **kwargs):
             if mode == 'init':
-                if init_auth():
-                    return func(*args, **kwargs)
+                state = init_auth()
+            elif mode == 'login':
+                state = check_login_state()
             else:
-                pass
+                state = False
+
+            if state[0]:
+                return func(*args, **kwargs)
+            else:
+                return state
         return inner
     return wrapper
 

@@ -29,10 +29,10 @@ def test_page(other_url):
 
 # 后台登录
 @base_log
-@admin_url_auth_wrapper
+@admin_url_auth_wrapper('page')
 def admin_login_page():
     return render_template('login.html')
 
-@admin_url_auth_wrapper
+@admin_url_auth_wrapper('page')
 def back_manage():
     return render_template('back.html')

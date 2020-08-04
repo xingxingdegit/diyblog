@@ -42,14 +42,16 @@ def login(username, password, key):
                             for i in range(30):
                                 session_id[i] = random.choice('0123456789')
                             session_id = '{}{}'.format(''.join(session_id), timestamp_now)
+                            cookie_key = db_data[0]['cookie_key']
                             session_data = {
                                 'session_id': session_id,
                                 'lasttime': timestamp_now,
                                 'active': 'online',
+                                'cookie_key': cookie_key,
+                                'timeout': setting['user_timeout'],
                             }
                             g.redis.hmset(username, session_data)
                             g.redis.expire(username, setting['user_timeout'])
-                            cookie_key = db_data[0]['cookie_key']
                             cipher = Fernet(cookie_key.encode('utf-8'))
                             session = cipher.encrypt(('{} {}'.format(username, session_id)).encode('utf-8'))
                             return True, session

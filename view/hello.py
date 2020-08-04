@@ -2,9 +2,11 @@ import traceback
 from flask import jsonify
 from flask import request
 import logging
+from api.auth import auth_mode
 
 log = logging.getLogger(__name__)
 
+@auth_mode('login')
 def hello():
     return 'hello world'
 

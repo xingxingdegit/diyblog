@@ -34,7 +34,8 @@ def login():
                 session = data[1]
                 return_data = {'success': True, 'data': None}
                 response = make_response(return_data)
-                response.set_cookie('sessionId', session)
+                response.set_cookie('session', session)
+                response.set_cookie('username', username)
                 response.status_code = 200
                 return response
             else:

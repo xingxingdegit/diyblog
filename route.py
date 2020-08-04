@@ -31,7 +31,10 @@ from view.page import test_page
 app.add_url_rule(rule='/test/<path:other_url>/oooo', view_func=test_page, methods=['GET'])
 
 from view.hello import test_form
+from view.hello import hello
 app.add_url_rule(rule='/test', view_func=test_form, methods=['POST'])
+app.add_url_rule(rule='/hello', view_func=hello, methods=['GET'])
+
 
 #####################################
 
