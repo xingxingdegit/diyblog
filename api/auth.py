@@ -10,9 +10,19 @@ import functools
 
 log = logging.getLogger(__name__)
 
+# 因为admin_url变量只在view层传递，而admin_rul_auth认证在api层。
+# 所以把admin_rul变量保存在g变量，供admin_url_auth来认证。
+def backend_g_admin_url(func):
+    @functools.wraps(func)
+    def wrapper(*args, admin_url, **kwargs):
+        g.admin_url = admin_url
+        return func(*args, **kwargs)
+    return wrapper
+
 @with_db('read')
-def admin_url_auth(admin_url):
+def admin_url_auth(**kwargs):
     try:
+        admin_url = kwargs.get('admin_url') or g.admin_url
         setting = g.db.select('setting', fields=['value'], where={'key': 'admin_url'})
         if setting[0]:
             if setting[1][0]:
@@ -20,14 +30,19 @@ def admin_url_auth(admin_url):
                     return True, ''
     except Exception:
         log.error(traceback.format_exc())
-    return False, 'not fund url'
+    return False, 'url not found'
 
 def admin_url_auth_wrapper(r_type):
     def wrapper(func):
         @functools.wraps(func)
-        def inner(admin_url, *args, **kwargs):
-            state = admin_url_auth(admin_url)[0]:
-            if state:
+        def inner(*args, **kwargs):
+            # 这里传递kwargs，是为了page页(view层)认证不需要添加backend_g_admin_url装饰器。
+            state = admin_url_auth(**kwargs)
+            try:
+                kwargs.pop('admin_url')
+            except KeyError:
+                pass
+            if state[0]:
                 resp_data = func(*args, **kwargs)
                 return resp_data
             else:
@@ -40,7 +55,7 @@ def admin_url_auth_wrapper(r_type):
         return inner
     return wrapper
 
-# 由前端决定是否跳转
+# 登录失效以后由前端决定是否跳转
 @with_redis
 def check_login_state():
     cookie = request.cookies
@@ -59,11 +74,15 @@ def check_login_state():
                 cookie_key = user_state['cookie_key']
                 cipher = Fernet(cookie_key.encode('utf-8'))
                 session_decode = cipher.decrypt(session.encode('utf-8')).decode('utf-8')
-                log.info(session_decode)
+                session_username, sessionid = session_decode.split()
+                log.info('sessionid: {}'.format(type(sessionid)))
+                if session_username == username:
+                    if sessionid == user_state['session_id']:
+                        return True, ''
 
     except Exception:
         log.error(traceback.format_exc())
-        return False, 'auth_invalid'
+    return False, 'auth_invalid'
 
 # only init
 @with_db('read')

@@ -10,6 +10,10 @@ log = logging.getLogger(__name__)
 def hello():
     return 'hello world'
 
+def test_url(*args, **kwargs):
+    log.info('args: {}'.format(args))
+    log.info('kwargs: {}'.format(kwargs))
+    return 'ok'
 
 def test_form():
     try:

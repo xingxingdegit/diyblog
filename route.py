@@ -32,8 +32,10 @@ app.add_url_rule(rule='/test/<path:other_url>/oooo', view_func=test_page, method
 
 from view.hello import test_form
 from view.hello import hello
+from view.hello import test_url
 app.add_url_rule(rule='/test', view_func=test_form, methods=['POST'])
 app.add_url_rule(rule='/hello', view_func=hello, methods=['GET'])
+app.add_url_rule(rule='/hello/<path:admin_url>/test', view_func=test_url, methods=['GET'])
 
 
 #####################################
@@ -51,7 +53,9 @@ app.add_url_rule(rule='/admin/<path:admin_url>/back_manage', view_func=back_mana
 
 # websocket event
 from view.init import init
+from view.init import init_check
 socketio.on_event('init', handler=init)
+socketio.on_event('init_check', handler=init_check)
 #socketio.on_event('connect', handler=)
 #socketio.on_event('message', handler=message)
 #socketio.on_event('json', handler=json_data)

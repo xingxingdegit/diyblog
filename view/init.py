@@ -35,6 +35,11 @@ log = logging.getLogger(__name__)
 
 @base_log
 @auth_mode('init')
+def init_check():
+    pass
+
+@base_log
+@auth_mode('init')
 def init(data):
     emit('init', {'stage': 'start', 'data': 'begin...'})
     sitename = data.get('sitename', '').strip()

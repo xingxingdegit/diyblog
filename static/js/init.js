@@ -15,16 +15,21 @@ var app = new Vue({
             progress_info: [],
         },
         show_nav: false,
+        status: true,
 
     },
     methods: {
         is_submit: function () {
-            if (this.userdata) {
-                this.websocket.is_show = true
-                socket.emit('init', this.userdata)
-                this.connect_info = '开始初始化...'
+            if (this.status) {
+                if (this.userdata) {
+                    this.websocket.is_show = true
+                    socket.emit('init', this.userdata)
+                    this.connect_info = '开始初始化...'
+                } else {
+                    this.connect_ = '用户信息填写错误'
+                }
             } else {
-                this.connect_ = '用户信息填写错误'
+                this.connect_info = '如果是网络问题请刷新页面重试， 如果曾经初始化过，请手动删除数据库中的表'
             }
         },
 
@@ -39,6 +44,11 @@ var app = new Vue({
 socket = io();
 socket.on('connect', function() {
     app.connect_info = '服务器已连接'
+    socket.emit('init_check')
+})
+socket.on('disconnect', function(){
+    app.connect_info = '连接已中断, 可能是网络问题，或者曾经初始化过'
+    app.status = false
 })
 
 var init_key = ''
@@ -73,8 +83,4 @@ socket.on('init', function(data) {
     } else {
         app.websocket.progress_info.push({class: "show_error_info", info: "无法理解当前步骤"})
     }
-})
-
-socket.on('disconnect', function() {
-    app.connect_info = '连接已中断(网络问题，或者曾经初始化过)'
 })

@@ -3,7 +3,7 @@ import logging
 import traceback
 from api.logger import base_log
 from api.dbpool import with_db
-from api.auth import admin_url_auth, admin_url_auth_wrapper
+from api.auth import admin_url_auth_wrapper, auth_mode
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +33,8 @@ def test_page(other_url):
 def admin_login_page():
     return render_template('login.html')
 
+@base_log
 @admin_url_auth_wrapper('page')
+@auth_mode('login')
 def back_manage():
     return render_template('back.html')

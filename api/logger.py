@@ -2,6 +2,7 @@ import logging
 import config
 from logging.handlers import RotatingFileHandler
 import functools
+from flask import request, Response
 
 
 log_file = config.log_file
@@ -43,9 +44,15 @@ else:
 log = logging.getLogger(__name__)
 
 def base_log(func):
-    from flask import request
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        log.info('func:{}|addr:{}|method:{}|url:{}'.format(func.__name__, request.remote_addr, request.method, request.url))
-        return func(*args, **kwargs)
+        data = func(*args, **kwargs)
+        if isinstance(data, Response):
+            status = data.status_code
+        elif data:
+            status = data[0]
+        else:
+            status = ''
+        log.info('func:{}|addr:{}|method:{}|url:{}|rep_status:{}'.format(func.__name__, request.remote_addr, request.method, request.url, status))
+        return data
     return wrapper

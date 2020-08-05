@@ -7,10 +7,12 @@ from api.auth import client_ip_unsafe
 import datetime
 from hashlib import sha256
 import traceback
+from api.auth import admin_url_auth, admin_url_auth_wrapper
 
 
 log = logging.getLogger(__name__)
 
+@admin_url_auth_wrapper('api')
 @client_ip_unsafe
 @with_db('read')
 def login(username, password, key):
@@ -73,6 +75,8 @@ def login(username, password, key):
     return False, None
 
 
+@admin_url_auth_wrapper('api')
+@client_ip_unsafe
 @with_db('read')
 def get_key():
     key = [0] * 10
