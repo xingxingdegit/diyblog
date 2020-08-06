@@ -20,7 +20,6 @@ def backend_g_admin_url(func):
         return func(*args, **kwargs)
     return wrapper
 
-@with_db('read')
 def admin_url_auth(**kwargs):
     try:
         admin_url = kwargs.get('admin_url') or g.admin_url
@@ -78,7 +77,6 @@ def check_login_state():
                     if sessionid == user_state['session_id']:
                         g.redis.hset(username, 'lasttime', timestamp_now)
                         return True, ''
-
     except Exception:
         log.error(traceback.format_exc())
     return False, 'auth_invalid'
@@ -90,12 +88,9 @@ def init_auth():
         tables = g.db.query('show tables;')
         if tables[0] and (tables[1] == 0):
             return True, ''
-        setting = g.db.select('setting', fields=['key', 'value'], where={'key': 'install_init'})
-        if setting[0]:
-            if setting[1][0]:
-                init = int(setting[1][1][0]['value'])
-                if init == 0:
-                    return True, ''
+        init = get_setting('install_init')
+        if init == 0:
+            return True, ''
     except Exception:
         log.error(traceback.format_exc())
     disconnect()
@@ -105,7 +100,6 @@ def init_auth():
 
 # only login
 def client_ip_unsafe(func):
-    @with_db('read')
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         """ redis data:  client_ip_unsafe_<base64 IP>: {'count': <number>, 'lasttime': <last_login_time>}
@@ -116,8 +110,7 @@ def client_ip_unsafe(func):
         log.info('client_key:{}'.format(client_key))
         client_data = g.redis.hgetall(client_key)
 
-        setting = g.db.select('setting', fields=['key', 'value'], where={'key': ['login_fail_count', 'login_blacklist_timeout', 'login_fail_lasttime']})
-        setting_data = {one_data['key']: int(one_data['value']) for one_data in setting[1][1]}
+        setting_data = get_setting(['login_fail_count', 'login_blacklist_timeout', 'login_fail_lasttime'])
         auth = False
 
         if not client_data:

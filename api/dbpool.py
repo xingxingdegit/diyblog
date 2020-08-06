@@ -23,7 +23,7 @@ def create_connect(database_tag):
         charset=database_conf['charset'],
         autocommit=False,
     )
-    log.info('database_tag: {}|host: {}|port: {}|user: ***|password: ***|charset: {}|database connect already create'.format(
+    log.debug('database_tag: {}|host: {}|port: {}|user: ***|password: ***|charset: {}|database connect already create'.format(
         database_tag, database_conf['host'], database_conf['port'], database_conf['charset']))
     return connect
 
@@ -94,7 +94,7 @@ class DbConnectPool:
             self.conn_key = self.__connect_idle[database_tag].pop()
             self.connect = self.__connect_all[database_tag][self.conn_key]
         except KeyError:
-            log.info(traceback.format_exc())
+            log.debug(traceback.format_exc())
             try:
                 self.conn_key = self.__conn_keys[database_tag].pop()
                 self.log(True, True, True, True, info='begin create database connect')
@@ -144,7 +144,7 @@ class DbConnectPool:
         if info:
             format.append('info:{info}')
             data_src['info'] = info
-        log.info('|'.join(format).format_map(data_src))
+        log.debug('|'.join(format).format_map(data_src))
 
     def get(self):
         self.connect.ping()

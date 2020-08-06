@@ -39,7 +39,7 @@ def init_setting(data):
         sitename = data.get('sitename', '').strip()
         admin_url = data.get('admin_url', 'admin_back').strip()
         set_data.append({'key': 'install_init', 'value': 1, 'intro': '1表示已经初始化过了'})
-        set_data.append({'key': 'nickname', 'value': sitename, 'intro': '昵称'})
+        set_data.append({'key': 'sitename', 'value': sitename, 'intro': '昵称'})
         set_data.append({'key': 'admin_url', 'value': admin_url, 'intro': '后台登录地址'})
         set_data.append({'key': 'avatar_url', 'value': 'static/image/123.jpg', 'intro': '头像路径'})
         set_data.append({'key': 'login_prefix_key_timeout', 'value': 300, 

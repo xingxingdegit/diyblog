@@ -8,6 +8,7 @@ import datetime
 from hashlib import sha256
 import traceback
 from api.auth import admin_url_auth, admin_url_auth_wrapper
+from api.setting import get_setting
 
 
 log = logging.getLogger(__name__)
@@ -32,10 +33,8 @@ def login(username, password, key):
                 if timestamp:
                     g.redis.delete(key)
                     timestamp_now = int(datetime.datetime.now().timestamp())
-                    setting = g.db.select(
-                        'setting', fields=['key', 'value'], where={'key': ['login_prefix_key_timeout', 'user_timeout']})
-                    if setting[0]: 
-                        setting = {one_set['key']: int(one_set['value']) for one_set in setting[1][1]}
+                    setting = get_setting(['login_prefix_key_timeout', 'user_timeout'])
+                    if setting: 
                         if ('login_prefix_key_timeout' not in setting) or ('user_timeout' not in setting):
                             log.error('func:login|setting:{}|info:setting about user login have a question'.format(setting))
                             return False, None
@@ -77,7 +76,6 @@ def login(username, password, key):
 
 @admin_url_auth_wrapper('api')
 @client_ip_unsafe
-@with_db('read')
 def get_key():
     key = [0] * 10
     for i in range(10):
@@ -86,9 +84,9 @@ def get_key():
     key = 'loginPrefix{}:{}'.format(timestamp, bytes(key).decode('utf-8'))
     data = False, None
     try:
-        setting = g.db.select('setting', fields=['key', 'value'], where={'key': 'login_prefix_key_timeout'})
-        if setting[0]:
-            login_prefix_key_timeout = setting[1][1][0]['value']
+        setting = get_setting('login_prefix_key_timeout')
+        if setting:
+            login_prefix_key_timeout = setting
             g.redis.set(key, int(timestamp), ex=login_prefix_key_timeout)
             data = True, key
     except Exception:
