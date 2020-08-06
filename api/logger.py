@@ -47,12 +47,13 @@ def base_log(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         data = func(*args, **kwargs)
-        if isinstance(data, Response):
+        try:
             status = data.status_code
-        elif data:
-            status = data[0]
-        else:
-            status = ''
+        except AttributeError:
+            if data:
+                status = data[0]
+            else:
+                status = ''
         log.info('func:{}|addr:{}|method:{}|url:{}|rep_status:{}'.format(func.__name__, request.remote_addr, request.method, request.url, status))
         return data
     return wrapper

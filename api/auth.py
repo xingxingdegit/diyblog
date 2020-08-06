@@ -1,7 +1,8 @@
-from flask import request, g, render_template
+from flask import request, g, render_template, redirect, url_for
 from api.dbpool import with_db, with_redis
 from cryptography.fernet import Fernet
 from flask_socketio import disconnect
+from api.setting import get_setting
 import traceback
 import base64
 import datetime
@@ -23,11 +24,9 @@ def backend_g_admin_url(func):
 def admin_url_auth(**kwargs):
     try:
         admin_url = kwargs.get('admin_url') or g.admin_url
-        setting = g.db.select('setting', fields=['value'], where={'key': 'admin_url'})
-        if setting[0]:
-            if setting[1][0]:
-                if admin_url == setting[1][1][0]['value']:
-                    return True, ''
+        auth_admin_url = get_setting('admin_url')
+        if admin_url == auth_admin_url:
+            return True, ''
     except Exception:
         log.error(traceback.format_exc())
     return False, 'url not found'
@@ -55,7 +54,7 @@ def admin_url_auth_wrapper(r_type):
         return inner
     return wrapper
 
-# 登录失效以后由前端决定是否跳转
+# 登录失效以后由前端决定是否跳转到登录页面
 @with_redis
 def check_login_state():
     cookie = request.cookies
@@ -75,9 +74,9 @@ def check_login_state():
                 cipher = Fernet(cookie_key.encode('utf-8'))
                 session_decode = cipher.decrypt(session.encode('utf-8')).decode('utf-8')
                 session_username, sessionid = session_decode.split()
-                log.info('sessionid: {}'.format(type(sessionid)))
                 if session_username == username:
                     if sessionid == user_state['session_id']:
+                        g.redis.hset(username, 'lasttime', timestamp_now)
                         return True, ''
 
     except Exception:
@@ -157,6 +156,16 @@ def client_ip_unsafe(func):
     return wrapper
 
 
+# 为了封装page页使用login检查装饰器，直接返回错误的响应信息。
+def wrapper_page_login(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        data = func(*args, **kwargs)
+        if data[0] is False:
+            admin_url = get_setting('admin_url')
+            return redirect(url_for('admin_login_page', admin_url=admin_url))
+        return data
+    return wrapper
 
 def auth_mode(mode):
     def wrapper(func):

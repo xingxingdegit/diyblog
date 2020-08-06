@@ -42,13 +42,15 @@ app.add_url_rule(rule='/hello/<path:admin_url>/test', view_func=test_url, method
 
 # admin manager
 from view.page import admin_login_page
-from view.page import back_manage
+from view.page import back_manage_page
 from view.login import login
 from view.login import get_key
+# page
 app.add_url_rule(rule='/admin/<path:admin_url>', view_func=admin_login_page, methods=['GET'])
+app.add_url_rule(rule='/admin/<path:admin_url>/back_manage', view_func=back_manage_page, methods=['GET'])
+# api
 app.add_url_rule(rule='/admin/<path:admin_url>/getkey', view_func=get_key, methods=['GET'])
 app.add_url_rule(rule='/admin/<path:admin_url>/login', view_func=login, methods=['POST'])
-app.add_url_rule(rule='/admin/<path:admin_url>/back_manage', view_func=back_manage, methods=['GET'])
 #####################################
 
 # websocket event
