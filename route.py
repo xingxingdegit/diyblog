@@ -45,12 +45,16 @@ from view.page import admin_login_page
 from view.page import back_manage_page
 from view.login import login
 from view.login import get_key
+from view.post import save_post_view
+
 # page
 app.add_url_rule(rule='/admin/<path:admin_url>', view_func=admin_login_page, methods=['GET'])
 app.add_url_rule(rule='/admin/<path:admin_url>/back_manage', view_func=back_manage_page, methods=['GET'])
-# api
+# login api
 app.add_url_rule(rule='/admin/<path:admin_url>/getkey', view_func=get_key, methods=['GET'])
 app.add_url_rule(rule='/admin/<path:admin_url>/login', view_func=login, methods=['POST'])
+# post api
+app.add_url_rule(rule='/admin/<path:admin_url>/post/save', view_func=save_post_view, methods=['POST'])
 #####################################
 
 # websocket event

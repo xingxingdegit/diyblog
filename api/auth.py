@@ -55,16 +55,23 @@ def admin_url_auth_wrapper(r_type):
 
 # 登录失效以后由前端决定是否跳转到登录页面
 @with_redis
-def check_login_state():
+def check_login_state(r_type='api'):
+    if r_type == 'api':
+        return_data = False, 'auth_invalid'
+    elif r_type == 'page':
+        admin_url = get_setting('admin_url')
+        return_data = redirect(url_for('admin_login_page', admin_url=admin_url))
+    else:
+        return_data = False, 'auth_invalid'
+
     cookie = request.cookies
-    log.error('cookie: {}'.format(cookie))
     username = cookie.get('username')
     session = cookie.get('session')
     if not (username and session):
-        return False, 'auth_invalid'
+        return return_data
     user_state = g.redis.hgetall(username)
     if not user_state:
-        return False, 'auth_invalid'
+        return return_data
     timestamp_now = int(datetime.datetime.now().timestamp())
     try:
         if user_state['active'] == 'online':
@@ -79,7 +86,7 @@ def check_login_state():
                         return True, ''
     except Exception:
         log.error(traceback.format_exc())
-    return False, 'auth_invalid'
+    return return_data
 
 # only init
 @with_db('read')
@@ -149,31 +156,22 @@ def client_ip_unsafe(func):
     return wrapper
 
 
-# 为了封装page页使用login检查装饰器，直接返回错误的响应信息。
-def wrapper_page_login(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        data = func(*args, **kwargs)
-        if data[0] is False:
-            admin_url = get_setting('admin_url')
-            return redirect(url_for('admin_login_page', admin_url=admin_url))
-        return data
-    return wrapper
-
-def auth_mode(mode):
+def auth_mode(mode, *r_type):
     def wrapper(func):
         @functools.wraps(func)
         def inner(*args, **kwargs):
             if mode == 'init':
                 state = init_auth()
             elif mode == 'login':
-                state = check_login_state()
+                state = check_login_state(*r_type)
             else:
                 state = False
-
-            if state[0]:
-                return func(*args, **kwargs)
-            else:
+            try:
+                if state[0]:
+                    return func(*args, **kwargs)
+                else:
+                    return state
+            except TypeError:
                 return state
         return inner
     return wrapper

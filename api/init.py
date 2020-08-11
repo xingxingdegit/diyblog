@@ -61,6 +61,7 @@ def init_setting(data):
 # 初始化表
 @with_db('write')
 def create_table():
+    # status, 1 已发布， 2 草稿， 3 已删除
     posts_sql = r'''
                 CREATE TABLE IF NOT EXISTS `posts` (
                 `id` int(10) unsigned NOT NULL AUTO_INCREMENT,

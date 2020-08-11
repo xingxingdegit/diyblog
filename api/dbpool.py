@@ -184,6 +184,7 @@ class WhereSql():
 class DbGetConnect():
     isclose = False
     columns = {}
+    auto_commit = True   # 只是内部控制的自动提交， 不是数据库的自动提交
     def __init__(self, database_tag='read'):
         self.obj = DbConnectPool(database_tag)
         self.conn = self.obj.get()
@@ -209,12 +210,15 @@ class DbGetConnect():
         self.isclose = True
 
     def begin(self):
+        self.auto_commit = False
         self.conn.begin()
 
     def commit(self):
+        self.auto_commit = True
         self.conn.commit()
 
     def rollback(self):
+        self.auto_commit = True
         self.conn.rollback()
 
     def where(self, where, fields):
@@ -339,7 +343,8 @@ class DbGetConnect():
                 self.rollback()
                 break
         else:
-            self.commit()
+            if self.auto_commit:
+                self.commit()
             return True, number
         return False, None
 
@@ -385,7 +390,8 @@ class DbGetConnect():
             return False, None
         else:
             log.info('update number is: {}'.format(data))
-            self.commit()
+            if self.auto_commit:
+                self.commit()
             return True, data
 
     def delete(self, table, where):
@@ -432,7 +438,8 @@ class DbGetConnect():
                 return False, None
             else:
                 log.info('delete number is: {}'.format(number))
-                self.commit()
+                if self.auto_commit:
+                    self.commit()
                 return True, number
 
 
@@ -486,6 +493,7 @@ class RedisGetConnect:
 from flask import g
 
 def with_db(tag):
+    ''' 以装饰器的方式使用完整的db对象 '''
     def inner(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -494,6 +502,22 @@ def with_db(tag):
                 return func(*args, **kwargs)
         return wrapper
     return inner
+
+# 以函数的形式使用select查询，并且精简返回的数据
+def select(table, fields='*', where=None, return_query_number=False):
+    with DbGetConnect('read') as db:
+        data = db.select(table, fields, where)
+        try:
+            if data[0]:
+                if return_query_number:
+                    return data[1]
+                else:
+                    return data[1][1]
+        except Exception:
+            log.error(traceback.format_exc())
+            return []
+
+
 
 def with_redis(func):
     @functools.wraps(func)
