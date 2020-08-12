@@ -22,7 +22,7 @@ def save_post_view():
         data = request.get_json()
         use_data = {}
         use_data['title'] = data['title'].strip()
-        use_data['content'] = data['content'].strip()
+        use_data['content'] = data['content']
         use_data['id'] = int(data.get('id', 0))
     
         return_data = save_post(use_data)

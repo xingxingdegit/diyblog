@@ -53,7 +53,7 @@ def admin_url_auth_wrapper(r_type):
         return inner
     return wrapper
 
-# 登录失效以后由前端决定是否跳转到登录页面
+# api访问登录失效以后由前端决定是否跳转到登录页面
 @with_redis
 def check_login_state(r_type='api'):
     if r_type == 'api':
@@ -155,6 +155,39 @@ def client_ip_unsafe(func):
             return False, '哈喽，进黑名单了'
     return wrapper
 
+from config import site_url
+from hashlib import sha256
+import hmac
+
+
+def cors_auth(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        time_key = int(datetime.datetime.now().timestamp()) // 100
+        salt_key = '{}:{}'.format(site_url, time_key)
+
+        form_data = request.get_json()
+        log.warn('flask form: {}'.format(request.get_json()))
+        log.warn('flask data: {}'.format(request.data.decode()))
+        log.warn('flask stram: {}'.format(request.stream))
+        cookie = request.cookies
+        log.warn('flask cookie: {}'.format(cookie))
+        from_hash = form_data.pop('hash')
+
+        cookie_hash = cookie.pop('hash')
+        log.error(traceback.format_exc())
+
+        try:
+            cookie_new_hash = hmac.new(salt_key, json.dumps(form_data).encode('utf-8')).hexdigest()
+            log.warn('cookie_new_hash: {}'.format(cookie_new_hash))
+        except Exception:
+            log.error(traceback.format_exc())
+
+        return func(*args, **kwargs)
+    return wrapper
+
+
+
 
 def auth_mode(mode, *r_type):
     def wrapper(func):
@@ -164,14 +197,16 @@ def auth_mode(mode, *r_type):
                 state = init_auth()
             elif mode == 'login':
                 state = check_login_state(*r_type)
+                try:
+                    state[0]
+                except TypeError:
+                    return state
             else:
                 state = False
-            try:
-                if state[0]:
-                    return func(*args, **kwargs)
-                else:
-                    return state
-            except TypeError:
+
+            if state[0]:
+                return func(*args, **kwargs)
+            else:
                 return state
         return inner
     return wrapper

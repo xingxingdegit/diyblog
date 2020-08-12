@@ -6,6 +6,8 @@ basedir = Path(__file__).absolute().parent.parent
 log_file = basedir / 'log/access.log'
 err_file = basedir / 'log/error.log'
 
+site_url = 'localhost:8080'   # 跟安全认证有关, 不需要写协议名称
+
 DEBUG = False
 
 listen = {

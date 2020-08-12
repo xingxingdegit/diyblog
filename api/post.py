@@ -1,5 +1,5 @@
 from api.dbpool import with_db, select
-from api.auth import admin_url_auth_wrapper, auth_mode
+from api.auth import admin_url_auth_wrapper, auth_mode, cors_auth
 from flask import g
 import logging
 import traceback
@@ -36,6 +36,7 @@ def check_url(url):
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
+@cors_auth
 @with_db('write')
 def save_post(data):
     ''' 通过id判断是更新还是创建。  在第一次保存草稿以后，会返回id值，便于第二次保存变为更新 '''
@@ -46,6 +47,7 @@ def save_post(data):
 
         timestamp_now = int(datetime.datetime.now().timestamp())
         write_data = {'title': title, 'posts': content, 'status': 2}
+        log.error(id)
         if id:
             write_data['update_time'] = timestamp_now
             state = g.db.update('posts', write_data, where={'id': id})

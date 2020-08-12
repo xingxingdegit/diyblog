@@ -54,6 +54,6 @@ def base_log(func):
                 status = data[0]
             else:
                 status = ''
-        log.info('func:{}|addr:{}|method:{}|url:{}|rep_status:{}'.format(func.__name__, request.remote_addr, request.method, request.url, status))
+        log.info('func:{}|{}|{}|{}|rep_status:{}'.format(func.__name__, request.remote_addr, request.method, request.url, status))
         return data
     return wrapper
