@@ -47,7 +47,6 @@ def save_post(data):
 
         timestamp_now = int(datetime.datetime.now().timestamp())
         write_data = {'title': title, 'posts': content, 'status': 2}
-        log.error(id)
         if id:
             write_data['update_time'] = timestamp_now
             state = g.db.update('posts', write_data, where={'id': id})

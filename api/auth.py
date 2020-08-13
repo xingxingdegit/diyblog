@@ -155,33 +155,54 @@ def client_ip_unsafe(func):
             return False, '哈喽，进黑名单了'
     return wrapper
 
+
 from config import site_url
 from hashlib import sha256
 import hmac
 
+def cors_hash(src_string, src_hash):
+    time_key = int(datetime.datetime.now().timestamp()) // 100
+    salt_key = '{}_{}'.format(site_url, time_key)
+    new_hash = hmac.new(salt_key.encode('utf-8'), src_string.encode('utf-8'), sha256).hexdigest()
+    if src_hash == new_hash:
+        return True
 
+    time_key = time_key - 1
+    salt_key = '{}_{}'.format(site_url, time_key)
+    new_hash = hmac.new(salt_key.encode('utf-8'), src_string.encode('utf-8'), sha256).hexdigest()
+    if src_hash == new_hash:
+        return True
+    return False
+
+# only api use
 def cors_auth(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        time_key = int(datetime.datetime.now().timestamp()) // 100
-        salt_key = '{}:{}'.format(site_url, time_key)
+        cookies = request.cookies
+        cookie_hash = cookies.get('hash')
+        cookie_list = []
+        for cookie in cookies:
+            if (cookie is None) or (cookie == 'hash'):
+                continue
+            cookie_list.append(cookies[cookie])
+        cookie_list.sort()
+        cookie_str = '_'.join(cookie_list)
+        cookie_hash_auth = cors_hash(cookie_str, cookie_hash)
+        if not cookie_hash_auth:
+            return False, ''
 
         form_data = request.get_json()
-        log.warn('flask form: {}'.format(request.get_json()))
-        log.warn('flask data: {}'.format(request.data.decode()))
-        log.warn('flask stram: {}'.format(request.stream))
-        cookie = request.cookies
-        log.warn('flask cookie: {}'.format(cookie))
-        from_hash = form_data.pop('hash')
-
-        cookie_hash = cookie.pop('hash')
-        log.error(traceback.format_exc())
-
-        try:
-            cookie_new_hash = hmac.new(salt_key, json.dumps(form_data).encode('utf-8')).hexdigest()
-            log.warn('cookie_new_hash: {}'.format(cookie_new_hash))
-        except Exception:
-            log.error(traceback.format_exc())
+        form_hash = form_data.pop('hash')
+        form_list = []
+        for form in form_data:
+            if form is None:
+                continue
+            form_list.append(form_data[form])
+        form_list.sort()
+        form_str = '_'.join(form_list)
+        form_hash_auth = cors_hash(form_str, form_hash)
+        if not form_hash_auth:
+            return False, ''
 
         return func(*args, **kwargs)
     return wrapper

@@ -336,7 +336,10 @@ class DbGetConnect():
             keys = ','.join(['`{}`'] * len(one_data)).format(*one_data.keys())
             sql = r'insert into `{}` ({}) values ({});'.format(table, keys, values)
             try:
-                log.info('func:insert|sql: {}'.format(sql))
+                if len(sql) > 100:
+                    log.info('func:insert|sql:insert into `{}` ({}) value (...)'.format(table, keys))
+                else:
+                    log.info('func:insert|sql:{}'.format(sql))
                 number += self.cur.execute(sql)
             except Exception:
                 log.error(traceback.format_exc())
@@ -381,7 +384,10 @@ class DbGetConnect():
             log.error('func:update|where:{}|info:where check fail'.format(where))
             return False, None
 
-        log.info('func:update|sql:{}'.format(sql))
+        if len(sql) > 100:
+            log.info('func:update|sql:update `{}` set ... where {};'.format(table, where))
+        else:
+            log.info('func:update|sql:{}'.format(sql))
         try:
             data = self.cur.execute(sql)
         except:
