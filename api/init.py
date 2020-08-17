@@ -70,10 +70,11 @@ def create_table():
                 `update_time` int(10) unsigned NOT NULL,
                 `summary` varchar(200) DEFAULT NULL,
                 `posts` text DEFAULT NULL,
+                `code_style` varchar(50),
                 `class` tinyint(3) unsigned DEFAULT NULL,
                 `status` tinyint(3) unsigned NOT NULL,
                 `visits` int(10) unsigned DEFAULT NULL,
-                `urls` varchar(100) unique,
+                `url` varchar(100) unique,
                 `istop` tinyint(4) DEFAULT NULL,
                 `intro` varchar(100) DEFAULT NULL,
                 PRIMARY KEY (`id`)

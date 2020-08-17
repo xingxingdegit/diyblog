@@ -9,30 +9,69 @@ log = logging.getLogger(__name__)
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
-@with_db('read')
-def check_title(title):
+def check_something(data):
+    # check title 与 url是否存在, 已存在返回True,  返回一个字典，{title: True, url: True}
     try:
-        data = g.db.select('posts', fields=['title'], where={'title': title})
-        if data[0]:
-            if data[1][0] == 0:
-                return True, ''
+        title = data['title']
+        url = data['url']
+        return_data = {}
+        if title:
+            title = select('posts', fields=['title'], where={'title': title})
+            if title:
+                return_data['title'] = True
+            else:
+                return_data['title'] = False
+        if url:
+            url = select('posts', fields=['url'], where={'url': url})
+            if url:
+                return_data['url'] = True
+            else:
+                return_data['url'] = False
+        return True, return_data
     except Exception:
         log.error(traceback.format_exc())
     return False, ''
+
 
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
-@with_db('read')
-def check_url(url):
+@cors_auth
+def get_post_admin(data):
     try:
-        data = g.db.select('posts', fields=['urls'], where={'title': url})
-        if data[0]:
-            if data[1][0] == 0:
-                return True, ''
+        id = data['id']
+        if id:
+            data = select('posts', fields=['id', 'title', 'create_time', 'summary', 'posts', 'code_style','class', 'url'], where={'id': id})
+            if len(data) > 1:
+                log.error('func:get_post_admin|post_id:{}|post number > 1'.format(id))
+                return False, ''
+            else:
+                data = data[0]
+        else:
+            data = select('posts', fields=['id', 'title', 'create_time', 'class', 'status', 'visits'])
+            # 需要分页处理， 添加where条件。
+            pass
+        return True, data
     except Exception:
         log.error(traceback.format_exc())
-    return False, ''
+        return False, ''
+
+
+def get_post_index(data):
+    try:
+        url = data['url']
+        if url:
+            data = select('posts', fields=['title', 'create_time', 'update_time', 'posts', 'code_style','visits'],where={'url': url})
+            data = data[0]
+        else:
+            data = select('posts', fields=['title', 'create_time', 'update_time', 'summary', 'class', 'visits'])
+            # 需要分页处理， 添加where条件。
+            pass
+        return True, data
+    except Exception:
+        log.error(traceback.format_exc())
+        return False, ''
+
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
@@ -43,10 +82,11 @@ def save_post(data):
     try:
         title = data['title']
         content = data['content']
+        code_style = data['code_style']
         id = data['id']
 
         timestamp_now = int(datetime.datetime.now().timestamp())
-        write_data = {'title': title, 'posts': content, 'status': 2}
+        write_data = {'title': title, 'posts': content, 'status': 2, 'code_style': code_style}
         if id:
             write_data['update_time'] = timestamp_now
             state = g.db.update('posts', write_data, where={'id': id})
@@ -61,7 +101,7 @@ def save_post(data):
             if state[0] and state[1]:
                 id = select('posts', fields=['id'], where={'title': title})[0]['id']
                 if id:
-                    return True, id
+                    return True, {'id': id}
     except Exception:
         log.error(traceback.format_exc())
     return False, ''
