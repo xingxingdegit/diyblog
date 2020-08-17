@@ -184,7 +184,8 @@ def cors_auth(func):
         for cookie in cookies:
             if (cookie is None) or (cookie == 'hash'):
                 continue
-            cookie_list.append(cookies[cookie])
+            cookie_list.append(str(cookies[cookie]))
+        
         cookie_list.sort()
         cookie_str = '_'.join(cookie_list)
         cookie_hash_auth = cors_hash(cookie_str, cookie_hash)
@@ -197,7 +198,7 @@ def cors_auth(func):
         for form in form_data:
             if form is None:
                 continue
-            form_list.append(form_data[form])
+            form_list.append(str(form_data[form]))
         form_list.sort()
         form_str = '_'.join(form_list)
         form_hash_auth = cors_hash(form_str, form_hash)
