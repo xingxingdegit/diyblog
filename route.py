@@ -48,6 +48,7 @@ from view.login import get_key
 from view.post import save_post_view
 from view.post import check_view
 from view.post import get_post_admin_view
+from view.post import get_post_list_view
 
 # page
 app.add_url_rule(rule='/admin/<path:admin_url>', view_func=admin_login_page, methods=['GET'])
@@ -59,6 +60,7 @@ app.add_url_rule(rule='/admin/<path:admin_url>/login', view_func=login, methods=
 app.add_url_rule(rule='/admin/<path:admin_url>/post/save', view_func=save_post_view, methods=['POST'])
 app.add_url_rule(rule='/admin/<path:admin_url>/post/check', view_func=check_view, methods=['GET'])
 app.add_url_rule(rule='/admin/<path:admin_url>/post/get', view_func=get_post_admin_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/post/get_list', view_func=get_post_list_view, methods=['POST'])
 #####################################
 
 # websocket event

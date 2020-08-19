@@ -286,7 +286,7 @@ class DbGetConnect():
         self.columns[table] = fields
         return fields
 
-    def select(self, table, fields='*', where=None):
+    def select(self, table, fields='*', where=None, limit=False, offset=0):
         """ ::param fields: [] 
             ::param where: {key: value, ..., key: [value, value,...], ...}
             ::return data: (<state>, (<number>, [{},{},...]))
@@ -306,9 +306,19 @@ class DbGetConnect():
 
         whsql = self.where(where, all_fields)
         if whsql:
-            sql = r'select {} from `{}` where {};'.format(fields, table, whsql)
+            sql = r'select {} from `{}` where {}'.format(fields, table, whsql)
         else:
-            log.error('func:select|fields:{}|where:{}|info:where check fail'.format(fields, where))
+            sql = r'select {} from `{}`'.format(fields, table)
+            question = True
+
+        if limit is not False:
+            question = False
+            sql = r'{} limit {}, {};'.format(sql, int(offset), int(limit))
+        else:
+            sql = r'{};'.format(sql)
+
+        if question:
+            log.error('func:select|fields:{}|where:{}|info:not where and not limit'.format(fields, where))
             return False, None
 
         log.info('func:select|sql: {}'.format(sql))
@@ -495,6 +505,21 @@ class RedisGetConnect:
     def ping(self):
         return self.__connect.ping()
 
+    def rpush(self, key, *value):
+        return self.__connect.rpush(key, *value)
+
+    def rpushx(self, key, *value):
+        return self.__connect.rpushx(key, *value)
+
+    def lrange(self, key, *value):
+        return self.__connect.lrange(key, *value)
+
+    def lrem(self, key, count, value):
+        return self.__connect.lrem(key, count, value)
+
+    def lset(self, key, index, lvalue):
+        return self.__connect.lset(key, index, value)
+
 
 from flask import g
 
@@ -510,9 +535,9 @@ def with_db(tag):
     return inner
 
 # 以函数的形式使用select查询，并且精简返回的数据
-def select(table, fields='*', where=None, return_query_number=False):
+def select(table, fields='*', where=None, return_query_number=False, *args, **kwargs):
     with DbGetConnect('read') as db:
-        data = db.select(table, fields, where)
+        data = db.select(table, fields, where, *args, **kwargs)
         try:
             if data[0]:
                 if return_query_number:

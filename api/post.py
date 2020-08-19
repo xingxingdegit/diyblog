@@ -1,4 +1,4 @@
-from api.dbpool import with_db, select
+from api.dbpool import with_db, select, with_redis
 from api.auth import admin_url_auth_wrapper, auth_mode, cors_auth
 from flask import g
 import logging
@@ -33,7 +33,6 @@ def check_something(data):
     return False, ''
 
 
-
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
 @cors_auth
@@ -47,16 +46,22 @@ def get_post_admin(data):
                 return False, ''
             else:
                 data = data[0]
-        else:
-            data = select('posts', fields=['id', 'title', 'create_time', 'class', 'status', 'visits'])
-            # 需要分页处理， 添加where条件。
-            pass
-        return True, data
+                return True, data
     except Exception:
         log.error(traceback.format_exc())
-        return False, ''
+    return False, ''
+
+@admin_url_auth_wrapper('api')
+@auth_mode('login')
+def get_post_list(data):
+    page_num = data['page_num']
+    post_num_per_page = data['post_num_per_page']
+    offset = (page_num - 1) * post_num_per_page
+    data = select('posts', fields=['id', 'title', 'create_time', 'class', 'status', 'visits'], limit=post_num_per_page, offset=offset)
+    return True, data
 
 
+# 首页的访问， 不需要权限
 def get_post_index(data):
     try:
         url = data['url']

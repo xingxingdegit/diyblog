@@ -7,6 +7,7 @@ from api.auth import backend_g_admin_url
 from api.post import save_post
 from api.post import check_something
 from api.post import get_post_admin
+from api.post import get_post_list
 
 log = logging.getLogger(__name__)
 
@@ -28,6 +29,21 @@ def check_view():
         log.error(traceback.format_exc())
     return jsonify({'success': False, 'data': ''})
 
+@base_log
+@backend_g_admin_url
+def get_post_list_view():
+    try:
+        data = request.get_json()
+        page_num = int(data['page_num'])
+        post_num_per_page = int(data['post_num_per_page'])
+        return_data = get_post_list({'page_num': page_num, 'post_num_per_page': post_num_per_page})
+        if return_data[0]:
+            return jsonify({'success': True, 'data': return_data[1]})
+        else:
+            return jsonify({'success': False, 'data': return_data[1]})
+    except Exception:
+        log.error(traceback.format_exc())
+    return jsonify({'success': False, 'data': ''})
 
 @base_log
 @backend_g_admin_url
