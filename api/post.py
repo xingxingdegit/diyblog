@@ -51,13 +51,57 @@ def get_post_admin(data):
         log.error(traceback.format_exc())
     return False, ''
 
+
+def handle_post_info(data):
+    ''' 添加标签， 处理时间戳为字符串格式，处理状态码为文字 '''
+    ''' 为了不让前端在重新处理一遍, 就在这里处理了 '''
+    tags_list = set()   # 为了添加标签
+    classes_list = set()
+    status_data = {1: '已发布', 2: '草稿', 3: '已删除'}
+    strftime = r'%Y-%m-%d %H:%M'
+    for note in data:
+        if 'create_time' in note:
+            create_timestamp = note['create_time']
+            timestamp_obj = datetime.datetime.fromtimestamp(create_timestamp)
+            note['create_time'] = timestamp_obj.strftime(strftime)
+        if 'update_time' in note:
+            update_timestamp = note['update_time']
+            timestamp_obj = datetime.datetime.fromtimestamp(update_timestamp)
+            note['update_time'] = timestamp_obj.strftime(strftime)
+        if 'class' in note:
+            classes_list.add(note['class'])
+        if 'tags' in note:
+            for tag_id in note['tags'].split(','):
+                tags_list.add(tag_id)
+        if 'status' in note:
+            note['status_str'] = status_data[note['status']]
+
+    if tags_list:
+        tags_data = select('tags', fields=['id', 'tagname'], where={'id': list(tags_list)})
+        tags_dict = {tag['id']: tag['tagname'] for tag in tags_data}
+
+    if classes_list:
+        classes_data = select('class', fields=['id', 'classname'], where={'id': list(classes_list)})
+        classes_dict = {clas['id']: clas['classname'] for clas in classes_data}
+
+    for note in data:
+        tag_list = []
+        for tag_id in note['tags'].split(','):
+            tag_list.append(tags_dict.get(tag_id, ''))
+        note['tags_str'] = ','.join(tag_list)
+        note['classes_str'] = classes_dict[note['class']]
+
+    return data
+
+
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
 def get_post_list(data):
     page_num = data['page_num']
     post_num_per_page = data['post_num_per_page']
     offset = (page_num - 1) * post_num_per_page
-    data = select('posts', fields=['id', 'title', 'create_time', 'class', 'status', 'visits'], limit=post_num_per_page, offset=offset)
+    data = select('posts', fields=['id', 'title', 'create_time', 'class', 'tags', 'status', 'visits'], limit=post_num_per_page, offset=offset)
+    data = handle_post_info(data)
     return True, data
 
 

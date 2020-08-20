@@ -49,8 +49,12 @@ def init_setting(data):
         set_data.append({'key': 'login_blacklist_timeout', 'value': 600, 'intro': '登录黑名单的封锁时间,秒'})
         set_data.append({'key': 'login_fail_count', 'value': 10, 'intro': '连续登录失败10次，进登录黑名单'})
         set_data.append({'key': 'login_fail_lasttime', 'value': 60, 'intro': '在没有进黑名单的情况下，超过这个时间的登录会清零登录失败计数，秒'})
-        state = g.db.insert('setting', set_data)
-        if state[0]:
+        set_state = g.db.insert('setting', set_data)
+
+        class_data = []
+        class_data.append({'id': 1, 'classname': 'unclass', 'status': 2, 'intro': '未分类'})
+        class_state = g.db.insert('class', class_data)
+        if set_state[0] and class_state[0]:
             return True
         return False
     except Exception:
@@ -71,7 +75,8 @@ def create_table():
                 `summary` varchar(200) DEFAULT NULL,
                 `posts` text DEFAULT NULL,
                 `code_style` varchar(50),
-                `class` tinyint(3) unsigned DEFAULT NULL,
+                `class` tinyint(3) unsigned DEFAULT 1,
+                `tags` varchar(20) DEFAULT '',
                 `status` tinyint(3) unsigned NOT NULL,
                 `visits` int(10) unsigned DEFAULT NULL,
                 `url` varchar(100) unique,
@@ -93,7 +98,6 @@ def create_table():
               CREATE TABLE IF NOT EXISTS `tags` (
                 `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
                 `tagname` varchar(100) NOT NULL unique,
-                `post` int(10) unsigned NOT NULL,
                 `intro` varchar(100) DEFAULT NULL,
                 PRIMARY KEY (`id`)
               ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

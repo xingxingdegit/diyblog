@@ -305,11 +305,12 @@ class DbGetConnect():
             return False, None
 
         whsql = self.where(where, all_fields)
+        question = True
         if whsql:
+            question = False
             sql = r'select {} from `{}` where {}'.format(fields, table, whsql)
         else:
             sql = r'select {} from `{}`'.format(fields, table)
-            question = True
 
         if limit is not False:
             question = False
