@@ -10,7 +10,7 @@ var app = new Vue({
     methods: {
         is_submit: function() {
             if (this.username && this.password) {
-                axios.post(document.location.pathname + '/login', {
+                axios.post('login', {
                     username: this.username,
                     password: this.password,
                     other: this.other,
@@ -19,7 +19,7 @@ var app = new Vue({
                     app.login_state = response.data.success
                     if (response.data.success) {
                         app.login_info = '认证成功'
-                        document.location.pathname = document.location.pathname + '/back_manage'
+                        document.location.pathname = document.location.pathname.split('/').slice(0, -1).join('/') + '/managepage'
                     }else{
                         console.log(response.data.data)
                         app.login_info = response.data.data || '认证失败'
@@ -36,7 +36,7 @@ var app = new Vue({
     },
 
     created: function() {
-        axios.get(document.location.pathname + '/getkey')
+        axios.get('getkey')
         .then(function(response) {
             app.other = response.data.data
         })

@@ -49,10 +49,11 @@ from view.post import save_post_view
 from view.post import check_view
 from view.post import get_post_admin_view
 from view.post import get_post_list_view
+from view.other import get_url_view
 
 # page
-app.add_url_rule(rule='/admin/<path:admin_url>', view_func=admin_login_page, methods=['GET'])
-app.add_url_rule(rule='/admin/<path:admin_url>/back_manage', view_func=back_manage_page, methods=['GET'])
+app.add_url_rule(rule='/admin/<path:admin_url>/loginpage', view_func=admin_login_page, methods=['GET'])
+app.add_url_rule(rule='/admin/<path:admin_url>/managepage', view_func=back_manage_page, methods=['GET'])
 # login api
 app.add_url_rule(rule='/admin/<path:admin_url>/getkey', view_func=get_key, methods=['GET'])
 app.add_url_rule(rule='/admin/<path:admin_url>/login', view_func=login, methods=['POST'])
@@ -61,6 +62,8 @@ app.add_url_rule(rule='/admin/<path:admin_url>/post/save', view_func=save_post_v
 app.add_url_rule(rule='/admin/<path:admin_url>/post/check', view_func=check_view, methods=['GET'])
 app.add_url_rule(rule='/admin/<path:admin_url>/post/get', view_func=get_post_admin_view, methods=['POST'])
 app.add_url_rule(rule='/admin/<path:admin_url>/post/get_list', view_func=get_post_list_view, methods=['POST'])
+# other api
+app.add_url_rule(rule='/admin/<path:admin_url>/get_url', view_func=get_url_view, methods=['GET'])
 #####################################
 
 # websocket event
