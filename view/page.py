@@ -37,4 +37,4 @@ def admin_login_page():
 @admin_url_auth_wrapper('page')
 @auth_mode('login', 'page')
 def back_manage_page():
-    return render_template('back.html')
+    return render_template('backmanage.html')

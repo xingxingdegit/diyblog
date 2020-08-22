@@ -333,6 +333,7 @@ class DbGetConnect():
         """
         all_fields = self.fields(table)
         if not all_fields:
+            log.info('func:insert|all_fields get fail')
             return False, None
 
         if not isinstance(value, list):

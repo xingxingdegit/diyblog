@@ -190,6 +190,7 @@ def cors_auth(func):
         cookie_str = '_'.join(cookie_list)
         cookie_hash_auth = cors_hash(cookie_str, cookie_hash)
         if not cookie_hash_auth:
+            log.info('func:cors_auth|cookie auth fail')
             return False, ''
 
         form_data = request.get_json()
@@ -203,6 +204,7 @@ def cors_auth(func):
         form_str = '_'.join(form_list)
         form_hash_auth = cors_hash(form_str, form_hash)
         if not form_hash_auth:
+            log.info('func:cors_auth|form auth fail')
             return False, ''
 
         return func(*args, **kwargs)
