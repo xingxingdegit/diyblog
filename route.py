@@ -66,6 +66,12 @@ app.add_url_rule(rule='/admin/<path:admin_url>/post/get_list', view_func=get_pos
 app.add_url_rule(rule='/admin/<path:admin_url>/get_url', view_func=get_url_view, methods=['GET'])
 #####################################
 
+# client page
+
+from view.classes import get_class_list_view
+app.add_url_rule(rule='/class/list', view_func=get_class_list_view, methods=['GET'])
+
+
 # websocket event
 from view.init import init
 from view.init import init_check

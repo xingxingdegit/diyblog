@@ -52,7 +52,7 @@ def init_setting(data):
         set_state = g.db.insert('setting', set_data)
 
         class_data = []
-        class_data.append({'id': 1, 'classname': 'unclass', 'status': 2, 'intro': '未分类'})
+        class_data.append({'id': 1, 'classname': 'unclass', 'status': 2, 'sort': 0, 'intro': '未分类'})
         class_state = g.db.insert('class', class_data)
         if set_state[0] and class_state[0]:
             return True
@@ -76,8 +76,8 @@ def create_table():
                 `posts` text DEFAULT NULL,
                 `code_style` varchar(50),
                 `class` tinyint(3) unsigned DEFAULT 1,
-                `tags` varchar(20) DEFAULT '',
-                `status` tinyint(3) unsigned NOT NULL,
+                `tags` varchar(20) DEFAULT '0',
+                `status` tinyint(3) unsigned DEFAULT 2 COMMENT '文章状态，1已发布，2草稿，3已删除',
                 `visits` int(10) unsigned DEFAULT NULL,
                 `url` varchar(100) unique,
                 `istop` tinyint(4) DEFAULT NULL,
@@ -89,7 +89,8 @@ def create_table():
                 CREATE TABLE IF NOT EXISTS `class` (
                 `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
                 `classname` varchar(100) NOT NULL unique,
-                `status` tinyint(4) NOT NULL,
+                `status` tinyint(4) DEFAULT 2 COMMENT '是否在主页显示，1显示，2不显示',
+                `sort` tinyint(4) DEFAULT 0 COMMENT '在主页展示时的排列顺序',
                 `intro` varchar(100) DEFAULT NULL,
                 PRIMARY KEY (`id`)
               ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

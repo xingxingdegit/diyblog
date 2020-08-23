@@ -100,7 +100,9 @@ def get_post_list(data):
     page_num = data['page_num']
     post_num_per_page = data['post_num_per_page']
     offset = (page_num - 1) * post_num_per_page
-    data = select('posts', fields=['id', 'title', 'create_time', 'class', 'tags', 'status', 'visits'], limit=post_num_per_page, offset=offset)
+    data = select('posts', fields=['id', 'title', 'create_time', 'class', 'tags', 'status', 'visits'], 
+                  where={'status': [1, 2, 3]},
+                  limit=post_num_per_page, offset=offset)
     data = handle_post_info(data)
     return True, data
 

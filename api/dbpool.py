@@ -235,14 +235,14 @@ class DbGetConnect():
                 #    break
                 # 防止空key。
                 if not key.strip():
-                    log.error('key:{}|value:{}|info:where key is empty, query is end'.format(key, value))
+                    log.error('key:{}|value:{}|info:where key is empty'.format(key, value))
                     break
                 # key没有在表字段里
                 if key not in fields:
-                    log.error('key:{}|value:{}|info:where key is not in fields, query is end'.format(key, value))
+                    log.error('key:{}|value:{}|info:where key is not in fields'.format(key, value))
                     break
                 if (value is True) or (value is False) or (value == []):
-                    log.error('key:{}|value:{}|info:value have a question, query is end'.format(key, value))
+                    log.error('key:{}|value:{}|info:value have a question'.format(key, value))
                     break
 
                 if not isinstance(value, list):
@@ -305,22 +305,16 @@ class DbGetConnect():
             return False, None
 
         whsql = self.where(where, all_fields)
-        question = True
         if whsql:
-            question = False
             sql = r'select {} from `{}` where {}'.format(fields, table, whsql)
         else:
-            sql = r'select {} from `{}`'.format(fields, table)
+            log.error('func:select|fields:{}|where:{}|info:where check fail'.format(fields, where))
+            return False, None
 
         if limit is not False:
-            question = False
             sql = r'{} limit {}, {};'.format(sql, int(offset), int(limit))
         else:
             sql = r'{};'.format(sql)
-
-        if question:
-            log.error('func:select|fields:{}|where:{}|info:not where and not limit'.format(fields, where))
-            return False, None
 
         log.info('func:select|sql: {}'.format(sql))
         number = self.cur.execute(sql)
