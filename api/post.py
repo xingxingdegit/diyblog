@@ -96,16 +96,45 @@ def handle_post_info(data):
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
+@with_db('read')
 def get_post_list(data):
-    page_num = data['page_num']
-    post_num_per_page = data['post_num_per_page']
-    offset = (page_num - 1) * post_num_per_page
-    data = select('posts', fields=['id', 'title', 'create_time', 'class', 'tags', 'status', 'visits'], 
-                  where={'status': [1, 2, 3]},
-                  sort_field='update_time',
-                  limit=post_num_per_page, offset=offset)
-    data = handle_post_info(data)
-    return True, data
+    try:
+        page_num = int(data['page_num'])
+        post_num_per_page = int(data['post_num_per_page'])
+        offset = (page_num - 1) * post_num_per_page
+        search_on = data.get('search_on', False)
+
+        fields=['id', 'title', 'create_time', 'class', 'tags', 'status', 'visits']
+        if search_on is True:
+            new_fields = list(map(lambda x: '`{}`'.format(x), fields))
+            sql = r'''select {} from `posts` where '''.format(','.join(new_fields))
+            keyword = data.get('search_keyword', '').strip()
+            post_class = int(data.get('search_class', 0))
+            status = int(data.get('search_status', 0))
+            search_where = []
+            if keyword:
+                search_where.append('`posts` like "%{}%"'.format(keyword))
+            if post_class:
+                search_where.append('`class` = "{}"'.format(post_class))
+            if status:
+                search_where.append('`status` = "{}"'.format(status))
+            else:
+                search_where.append('`status` in (1,2,3)')
+            sql += r' and '.join(search_where)
+            sql += r' order by `update_time` desc limit {},{};'.format(offset, post_num_per_page)
+            state = g.db.query(sql)
+            if state[0]:
+                data = [dict(zip(fields, onedata)) for onedata in g.db.cur.fetchall()]
+            else:
+                return False, ''
+
+        else:
+            data = select('posts', fields=fields, where={'status': [1, 2, 3]}, sort_field='update_time', limit=post_num_per_page, offset=offset)
+        data = handle_post_info(data)
+        return True, data
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''
 
 
 # 首页的访问， 不需要权限

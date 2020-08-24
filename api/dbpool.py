@@ -379,7 +379,8 @@ class DbGetConnect():
             log.error(traceback.format_exc())
             return False, None
         else:
-            self.commit()
+            if self.auto_commit:
+                self.commit()
             return True, data
 
     def update(self, table, values, where):
@@ -548,7 +549,6 @@ def select(table, fields='*', *args, return_query_number=False, **kwargs):
     with DbGetConnect('read') as db:
         try:
             data = db.select(table, fields, *args, **kwargs)
-            log.warn(data)
             if data[0]:
                 if return_query_number:
                     return data[1]

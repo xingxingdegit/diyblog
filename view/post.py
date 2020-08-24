@@ -34,9 +34,7 @@ def check_view():
 def get_post_list_view():
     try:
         data = request.get_json()
-        page_num = int(data['page_num'])
-        post_num_per_page = int(data['post_num_per_page'])
-        return_data = get_post_list({'page_num': page_num, 'post_num_per_page': post_num_per_page})
+        return_data = get_post_list(data)
         if return_data[0]:
             return jsonify({'success': True, 'data': return_data[1]})
         else:
