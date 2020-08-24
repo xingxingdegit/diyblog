@@ -286,9 +286,11 @@ class DbGetConnect():
         self.columns[table] = fields
         return fields
 
-    def select(self, table, fields='*', where=None, limit=False, offset=0):
+    def select(self, table, fields='*', *, where=None, sort_field=None, sort_type='desc', limit=None, offset=0):
         """ ::param fields: [] 
             ::param where: {key: value, ..., key: [value, value,...], ...}
+            ::param sort_field: table field name
+            ::param sort_type: sort type,  desc or asc
             ::return data: (<state>, (<number>, [{},{},...]))
         """
         all_fields = self.fields(table)
@@ -310,8 +312,19 @@ class DbGetConnect():
         else:
             log.error('func:select|fields:{}|where:{}|info:where check fail'.format(fields, where))
             return False, None
+        
+        if sort_field:
+            if sort_field not in all_fields:
+                log.error('func:select|sort_field:{}|info:sort_field not in field'.format(sort_field))
+                return False, None
+            if sort_type not in ('asc', 'desc'):
+                log.error('func:select|sort_type:{}|info:sort_type is error'.format(sort_type))
+                return False, None
+            sql = r'{} order by `{}` {}'.format(sql, sort_field, sort_type)
 
-        if limit is not False:
+
+        # 因为limit可能会是0, 所以不能直接判断limit真假.
+        if limit is not None:
             sql = r'{} limit {}, {};'.format(sql, int(offset), int(limit))
         else:
             sql = r'{};'.format(sql)
@@ -531,15 +544,18 @@ def with_db(tag):
     return inner
 
 # 以函数的形式使用select查询，并且精简返回的数据
-def select(table, fields='*', where=None, return_query_number=False, *args, **kwargs):
+def select(table, fields='*', *args, return_query_number=False, **kwargs):
     with DbGetConnect('read') as db:
-        data = db.select(table, fields, where, *args, **kwargs)
         try:
+            data = db.select(table, fields, *args, **kwargs)
+            log.warn(data)
             if data[0]:
                 if return_query_number:
                     return data[1]
                 else:
                     return data[1][1]
+            else:
+                log.info('func:select|return_state:{}|info:select return have a error'.format(data[0]))
         except Exception:
             log.error(traceback.format_exc())
             return []
