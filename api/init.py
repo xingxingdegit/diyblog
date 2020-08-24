@@ -78,7 +78,7 @@ def create_table():
                 `class` tinyint(3) unsigned DEFAULT 1,
                 `tags` varchar(20) DEFAULT '0',
                 `status` tinyint(3) unsigned DEFAULT 2 COMMENT '文章状态，1已发布，2草稿，3已删除',
-                `visits` int(10) unsigned DEFAULT NULL,
+                `visits` int(10) unsigned DEFAULT 0,
                 `url` varchar(100) unique,
                 `istop` tinyint(4) DEFAULT NULL,
                 `intro` varchar(100) DEFAULT NULL,

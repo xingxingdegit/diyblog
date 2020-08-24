@@ -383,7 +383,7 @@ class DbGetConnect():
                 self.commit()
             return True, data
 
-    def update(self, table, values, where):
+    def update(self, table, values, *, where):
         """param: values:  {}
         """
         all_fields = self.fields(table)

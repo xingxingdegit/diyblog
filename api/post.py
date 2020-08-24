@@ -32,6 +32,55 @@ def check_something(data):
         log.error(traceback.format_exc())
     return False, ''
 
+@admin_url_auth_wrapper('api')
+@auth_mode('login')
+@cors_auth
+@with_db('write')
+def remove_post(data):
+    '''标记为已删除'''
+    try:
+        post_id = int(data.get('post_id', 0))
+        if post_id:
+            state = g.db.update('posts', values={'status': 3}, where={'id': post_id})
+            if state[0]:
+                return True, state[1]
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''
+
+@admin_url_auth_wrapper('api')
+@auth_mode('login')
+@cors_auth
+@with_db('write')
+def cancel_remove(data):
+    '''取消删除标记，文档变为草稿状态'''
+    try:
+        post_id = int(data.get('post_id', 0))
+        if post_id:
+            state = g.db.update('posts', values={'status': 2}, where={'id': post_id})
+            if state[0]:
+                return True, state[1]
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''
+
+@admin_url_auth_wrapper('api')
+@auth_mode('login')
+@cors_auth
+@with_db('write')
+def del_post(data):
+    '''彻底删除文档'''
+    try:
+        post_id = int(data.get('post_id', 0))
+        if post_id:
+            state = g.db.delete('posts', where={'id': post_id})
+            if state[0]:
+                return True, state[1]
+
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''
+
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
@@ -119,7 +168,7 @@ def get_post_list(data):
             if status:
                 search_where.append('`status` = "{}"'.format(status))
             else:
-                search_where.append('`status` in (1,2,3)')
+                search_where.append('`status` in (1,2)')
             sql += r' and '.join(search_where)
             sql += r' order by `update_time` desc limit {},{};'.format(offset, post_num_per_page)
             state = g.db.query(sql)
@@ -129,7 +178,7 @@ def get_post_list(data):
                 return False, ''
 
         else:
-            data = select('posts', fields=fields, where={'status': [1, 2, 3]}, sort_field='update_time', limit=post_num_per_page, offset=offset)
+            data = select('posts', fields=fields, where={'status': [1, 2]}, sort_field='update_time', limit=post_num_per_page, offset=offset)
         data = handle_post_info(data)
         return True, data
     except Exception:
