@@ -252,7 +252,7 @@ class DbGetConnect():
                     if one_value is None:
                         or_term.append('`{}` is null'.format(key))
                     else:
-                        or_term.append('`{}`="{}"'.format(key, one_value))
+                        or_term.append('`{}`="{}"'.format(key, pymysql.escape_string(str(one_value))))
                 if len(or_term) > 1:
                     or_term = '({})'.format(' or '.join(or_term))
                 else:
@@ -355,17 +355,18 @@ class DbGetConnect():
             values = []
             for key in one_data:
                 keys.append('`{}`'.format(key))
-                values.append('%({})s'.format(key))
+                values.append('{{{}}}'.format(key))
 
             values = ','.join(values)
             keys = ','.join(keys)
             sql = r'''insert into `{}` ({}) values ({});'''.format(table, keys, values)
+            sql = sql.format_map(pymysql.escape_dict(one_data, self.conn.charset))
             try:
                 if len(sql) > 200:
                     log.info('func:insert|sql:insert into `{}` ({}) value (...)'.format(table, keys))
                 else:
                     log.info('func:insert|sql:{}'.format(sql))
-                number += self.cur.execute(sql, one_data)
+                number += self.cur.execute(sql)
             except Exception:
                 log.error(traceback.format_exc())
                 self.rollback()
@@ -401,7 +402,7 @@ class DbGetConnect():
             if value == None:
                 setsql.append('`{}`=null'.format(key))
             else:
-                setsql.append('`{}`="{}"'.format(key, value))
+                setsql.append('`{0}`= {{{0}}}'.format(key))
         setsql = ','.join(setsql)
         whsql = self.where(where, all_fields)
         if whsql:
@@ -410,12 +411,13 @@ class DbGetConnect():
             log.error('func:update|where:{}|info:where check fail'.format(where))
             return False, None
 
+        sql = sql.format_map(pymysql.escape_dict(values, self.conn.charset))
         if len(sql) > 200:
-            log.info('func:update|sql:update `{}` set ... where {};'.format(table, where))
+            log.info('func:update|sql:update `{}` set ... where {};'.format(table, whsql))
         else:
             log.info('func:update|sql:{}'.format(sql))
         try:
-            data = self.cur.execute(sql)
+            data = self.cur.execute(sql, values)
         except:
             self.rollback()
             log.error(traceback.format_exc())
