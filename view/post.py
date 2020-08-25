@@ -8,6 +8,9 @@ from api.post import save_post
 from api.post import check_something
 from api.post import get_post_admin
 from api.post import get_post_list
+from api.post import remove_post
+from api.post import cancel_remove
+from api.post import del_post
 
 log = logging.getLogger(__name__)
 
@@ -55,11 +58,51 @@ def get_post_admin_view():
             return jsonify({'success': True, 'data': return_data[1]})
         else:
             return jsonify({'success': False, 'data': return_data[1]})
-        pass
     except Exception:
         log.error(traceback.format_exc())
     return jsonify({'success': False, 'data': ''})
 
+@base_log
+@backend_g_admin_url
+def remove_post_view():
+    try:
+        data = request.get_json()
+        return_data = remove_post(data)
+        if return_data[0]:
+            return jsonify({'success': True, 'data': return_data[1]})
+        else:
+            return jsonify({'success': False, 'data': return_data[1]})
+    except Exception:
+        log.error(traceback.format_exc())
+    return jsonify({'success': False, 'data': ''})
+
+@base_log
+@backend_g_admin_url
+def cancel_remove_view():
+    try:
+        data = request.get_json()
+        return_data = cancel_remove(data)
+        if return_data[0]:
+            return jsonify({'success': True, 'data': return_data[1]})
+        else:
+            return jsonify({'success': False, 'data': return_data[1]})
+    except Exception:
+        log.error(traceback.format_exc())
+    return jsonify({'success': False, 'data': ''})
+
+@base_log
+@backend_g_admin_url
+def del_post_view():
+    try:
+        data = request.get_json()
+        return_data = del_post(data)
+        if return_data[0]:
+            return jsonify({'success': True, 'data': return_data[1]})
+        else:
+            return jsonify({'success': False, 'data': return_data[1]})
+    except Exception:
+        log.error(traceback.format_exc())
+    return jsonify({'success': False, 'data': ''})
 
 @base_log
 @backend_g_admin_url

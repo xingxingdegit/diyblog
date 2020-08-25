@@ -67,7 +67,7 @@ def cancel_remove(data):
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
 @cors_auth
-@with_db('write')
+@with_db('delete')
 def del_post(data):
     '''彻底删除文档'''
     try:

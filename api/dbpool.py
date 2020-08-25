@@ -352,10 +352,11 @@ class DbGetConnect():
                 log.error('func:insert|table:{}|value:{}|info:fields not in table'.format(table, value))
                 return False, None
             values = ','.join(['"{}"'] * len(one_data)).format(*one_data.values())
+            log.error('values: {}'.format(values))
             keys = ','.join(['`{}`'] * len(one_data)).format(*one_data.keys())
-            sql = r'insert into `{}` ({}) values ({});'.format(table, keys, values)
+            sql = r'''insert into `{}` ({}) values ({});'''.format(table, keys, values)
             try:
-                if len(sql) > 100:
+                if len(sql) > 20000:
                     log.info('func:insert|sql:insert into `{}` ({}) value (...)'.format(table, keys))
                 else:
                     log.info('func:insert|sql:{}'.format(sql))
@@ -404,7 +405,7 @@ class DbGetConnect():
             log.error('func:update|where:{}|info:where check fail'.format(where))
             return False, None
 
-        if len(sql) > 100:
+        if len(sql) > 200:
             log.info('func:update|sql:update `{}` set ... where {};'.format(table, where))
         else:
             log.info('func:update|sql:{}'.format(sql))
@@ -421,10 +422,6 @@ class DbGetConnect():
             return True, data
 
     def delete(self, table, where):
-        number = self.select(table, where=where)
-        if number[0]:
-            return False, None
-
         setting = self.select('setting', where={'key': 'del_number'})
         if setting[0]:
             if setting[1][0]:
@@ -434,7 +431,7 @@ class DbGetConnect():
                 return False, None
         else:
             return False, None
-
+        number = self.select(table, where=where)
         if number[1][0] == 0 or number[1][0] > del_number:
             log.error(
                 'func:delete|table:{}|where:{}|del_number:{}|info:check "Number of records deleted is error"'.format(table, where, number)

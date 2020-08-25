@@ -49,6 +49,9 @@ from view.post import save_post_view
 from view.post import check_view
 from view.post import get_post_admin_view
 from view.post import get_post_list_view
+from view.post import remove_post_view
+from view.post import cancel_remove_view
+from view.post import del_post_view
 from view.other import get_url_view
 
 # page
@@ -61,6 +64,9 @@ app.add_url_rule(rule='/admin/<path:admin_url>/login', view_func=login, methods=
 app.add_url_rule(rule='/admin/<path:admin_url>/post/save', view_func=save_post_view, methods=['POST'])
 app.add_url_rule(rule='/admin/<path:admin_url>/post/check', view_func=check_view, methods=['GET'])
 app.add_url_rule(rule='/admin/<path:admin_url>/post/get', view_func=get_post_admin_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/post/remove', view_func=remove_post_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/post/cancel_remove', view_func=cancel_remove_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/post/delete', view_func=del_post_view, methods=['POST'])
 app.add_url_rule(rule='/admin/<path:admin_url>/post/get_list', view_func=get_post_list_view, methods=['POST'])
 # other api
 app.add_url_rule(rule='/admin/<path:admin_url>/get_url', view_func=get_url_view, methods=['GET'])
