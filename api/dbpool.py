@@ -351,16 +351,21 @@ class DbGetConnect():
             if set(one_data.keys()) - all_fields:
                 log.error('func:insert|table:{}|value:{}|info:fields not in table'.format(table, value))
                 return False, None
-            values = ','.join(['"{}"'] * len(one_data)).format(*one_data.values())
-            log.error('values: {}'.format(values))
-            keys = ','.join(['`{}`'] * len(one_data)).format(*one_data.keys())
+            keys = []
+            values = []
+            for key in one_data:
+                keys.append('`{}`'.format(key))
+                values.append('%({})s'.format(key))
+
+            values = ','.join(values)
+            keys = ','.join(keys)
             sql = r'''insert into `{}` ({}) values ({});'''.format(table, keys, values)
             try:
-                if len(sql) > 20000:
+                if len(sql) > 200:
                     log.info('func:insert|sql:insert into `{}` ({}) value (...)'.format(table, keys))
                 else:
                     log.info('func:insert|sql:{}'.format(sql))
-                number += self.cur.execute(sql)
+                number += self.cur.execute(sql, one_data)
             except Exception:
                 log.error(traceback.format_exc())
                 self.rollback()
