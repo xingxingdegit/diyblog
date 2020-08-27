@@ -53,6 +53,7 @@ from view.post import remove_post_view
 from view.post import cancel_remove_view
 from view.post import del_post_view
 from view.other import get_url_view
+from view.upload import upload_file_view
 
 # page
 app.add_url_rule(rule='/admin/<path:admin_url>/loginpage', view_func=admin_login_page, methods=['GET'])
@@ -70,6 +71,7 @@ app.add_url_rule(rule='/admin/<path:admin_url>/post/delete', view_func=del_post_
 app.add_url_rule(rule='/admin/<path:admin_url>/post/get_list', view_func=get_post_list_view, methods=['POST'])
 # other api
 app.add_url_rule(rule='/admin/<path:admin_url>/get_url', view_func=get_url_view, methods=['GET'])
+app.add_url_rule(rule='/admin/<path:admin_url>/upload_file', view_func=upload_file_view, methods=['POST'])
 #####################################
 
 # client page

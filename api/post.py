@@ -9,6 +9,7 @@ log = logging.getLogger(__name__)
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
+@cors_auth()
 def check_something(data):
     # check title 与 url是否存在, 已存在返回True,  返回一个字典，{title: True, url: True}
     try:
@@ -34,7 +35,7 @@ def check_something(data):
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
-@cors_auth
+@cors_auth()
 @with_db('write')
 def remove_post(data):
     '''标记为已删除'''
@@ -50,7 +51,7 @@ def remove_post(data):
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
-@cors_auth
+@cors_auth()
 @with_db('write')
 def cancel_remove(data):
     '''取消删除标记，文档变为草稿状态'''
@@ -66,7 +67,7 @@ def cancel_remove(data):
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
-@cors_auth
+@cors_auth()
 @with_db('delete')
 def del_post(data):
     '''彻底删除文档'''
@@ -84,7 +85,7 @@ def del_post(data):
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
-@cors_auth
+@cors_auth()
 def get_post_admin(data):
     try:
         id = data['id']
@@ -145,6 +146,7 @@ def handle_post_info(data):
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
+@cors_auth()
 @with_db('read')
 def get_post_list(data):
     try:
@@ -162,25 +164,37 @@ def get_post_list(data):
             status = int(data.get('search_status', 0))
             search_where = []
             if keyword:
-                search_where.append('`posts` like "%{}%"'.format(keyword))
+                search_where.append('`posts` like "%{}%"'.format(g.db.conn.escape_string(keyword)))
             if post_class:
                 search_where.append('`class` = "{}"'.format(post_class))
             if status:
                 search_where.append('`status` = "{}"'.format(status))
             else:
                 search_where.append('`status` in (1,2)')
-            sql += r' and '.join(search_where)
+            sql_where = r' and '.join(search_where)
+            sql += sql_where
             sql += r' order by `update_time` desc limit {},{};'.format(offset, post_num_per_page)
             state = g.db.query(sql)
             if state[0]:
                 data = [dict(zip(fields, onedata)) for onedata in g.db.cur.fetchall()]
             else:
                 return False, ''
-
         else:
+            sql_where = '`status` in (1,2)'
             data = select('posts', fields=fields, where={'status': [1, 2]}, sort_field='update_time', limit=post_num_per_page, offset=offset)
+
         data = handle_post_info(data)
-        return True, data
+        total_num_sql = r'''select count(id) from `posts` where {}'''.format(sql_where)
+        # 查询复合条件的有多少条， 作为前端'总条数'的展示数据
+        state = g.db.query(total_num_sql)
+        if state[0]:
+            total_post_num = g.db.cur.fetchone()[0]
+        else:
+            total_post_num = 0
+
+        return_data = {'list_data': data, 'total_post_num': total_post_num}
+
+        return True, return_data
     except Exception:
         log.error(traceback.format_exc())
     return False, ''
@@ -205,7 +219,7 @@ def get_post_index(data):
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
-@cors_auth
+@cors_auth()
 @with_db('write')
 def save_post(data):
     ''' 通过id判断是更新还是创建。  在第一次保存草稿以后，会返回id值，便于第二次保存变为更新 '''

@@ -36,7 +36,7 @@ var app = new Vue({
     },
     computed: {
         all_admin_url: function () {
-            return 'admin/' + this.userdata.admin_url
+            return 'admin/' + this.userdata.admin_url + '/loginpage'
         }
     }
 })

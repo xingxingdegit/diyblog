@@ -49,6 +49,9 @@ def init_setting(data):
         set_data.append({'key': 'login_blacklist_timeout', 'value': 600, 'intro': '登录黑名单的封锁时间,秒'})
         set_data.append({'key': 'login_fail_count', 'value': 10, 'intro': '连续登录失败10次，进登录黑名单'})
         set_data.append({'key': 'login_fail_lasttime', 'value': 60, 'intro': '在没有进黑名单的情况下，超过这个时间的登录会清零登录失败计数，秒'})
+        set_data.append({'key': 'upload_file_size', 'value': 10000000, 'intro': '单位Byte'})
+        set_data.append({'key': 'upload_file_ext', 'value': 'png,jpg,jpeg,gif', 'intro': '允许上传的扩展名, 逗号分隔'})
+        set_data.append({'key': 'upload_file_mime', 'value': 'image', 'intro': '允许上传的mime主类型。逗号分隔'})
         set_state = g.db.insert('setting', set_data)
 
         class_data = []
@@ -126,13 +129,26 @@ def create_table():
               UNIQUE KEY `key` (`key`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
             '''
+    attach_sql = r'''
+              CREATE TABLE IF NOT EXISTS `attach` (
+              `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+              `filename` VARCHAR(70) NOT NULL UNIQUE COMMENT '文件名称',
+              `pathname` VARCHAR(100) NOT NULL COMMENT '在系统上的存放路径,同时也是对外的路径，包含文件名称',
+              `mimetype` VARCHAR(50) NOT NULL,
+              `size` int(10) UNSIGNED NOT NULL,
+              `uptime` int(10) UNSIGNED NOT NULL,
+              `intro` VARCHAR(100) DEFAULT NULL,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+            '''
 
     p = g.db.query(posts_sql)
     c = g.db.query(class_sql)
     t = g.db.query(tags_sql)
     u = g.db.query(users_sql)
     s = g.db.query(setting_sql)
-    if p[0] and c[0] and t[0] and u[0] and s[0]:
+    a = g.db.query(attach_sql)
+    if p[0] and c[0] and t[0] and u[0] and s[0] and a[0]:
         return True
     else:
         return False

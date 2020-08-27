@@ -175,40 +175,47 @@ def cors_hash(src_string, src_hash):
     return False
 
 # only api use
-def cors_auth(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        cookies = request.cookies
-        cookie_hash = cookies.get('hash')
-        cookie_list = []
-        for cookie in cookies:
-            if (cookie is None) or (cookie == 'hash'):
-                continue
-            cookie_list.append(str(cookies[cookie]))
-        
-        cookie_list.sort()
-        cookie_str = '_'.join(cookie_list)
-        cookie_hash_auth = cors_hash(cookie_str, cookie_hash)
-        if not cookie_hash_auth:
-            log.info('func:cors_auth|cookie auth fail')
-            return False, ''
+def cors_auth(check=None):
+    if check is None:
+        check = ['json', 'cookie']
 
-        form_data = request.get_json()
-        form_hash = form_data.pop('hash')
-        form_list = []
-        for form in form_data:
-            if form is None:
-                continue
-            form_list.append(str(form_data[form]))
-        form_list.sort()
-        form_str = '_'.join(form_list)
-        form_hash_auth = cors_hash(form_str, form_hash)
-        if not form_hash_auth:
-            log.info('func:cors_auth|form auth fail')
-            return False, ''
-
-        return func(*args, **kwargs)
-    return wrapper
+    def inner(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            if 'cookie' in check:
+                cookies = request.cookies
+                cookie_hash = cookies.get('hash')
+                cookie_list = []
+                for cookie in cookies:
+                    if (cookie is None) or (cookie == 'hash'):
+                        continue
+                    cookie_list.append(str(cookies[cookie]))
+                
+                cookie_list.sort()
+                cookie_str = '_'.join(cookie_list)
+                cookie_hash_auth = cors_hash(cookie_str, cookie_hash)
+                if not cookie_hash_auth:
+                    log.info('func:cors_auth|cookie auth fail')
+                    return False, ''
+    
+            if 'josn' in check:
+                form_data = request.get_json()
+                form_hash = form_data.pop('hash')
+                form_list = []
+                for form in form_data:
+                    if form is None:
+                        continue
+                    form_list.append(str(form_data[form]))
+                form_list.sort()
+                form_str = '_'.join(form_list)
+                form_hash_auth = cors_hash(form_str, form_hash)
+                if not form_hash_auth:
+                    log.info('func:cors_auth|form auth fail')
+                    return False, ''
+    
+            return func(*args, **kwargs)
+        return wrapper
+    return inner
 
 
 
