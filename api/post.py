@@ -9,7 +9,6 @@ log = logging.getLogger(__name__)
 
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
-@cors_auth()
 def check_something(data):
     # check title 与 url是否存在, 已存在返回True,  返回一个字典，{title: True, url: True}
     try:
@@ -22,13 +21,15 @@ def check_something(data):
                 return_data['title'] = True
             else:
                 return_data['title'] = False
+
         if url:
             url = select('posts', fields=['url'], where={'url': url})
             if url:
                 return_data['url'] = True
             else:
                 return_data['url'] = False
-        return True, return_data
+        if return_data:
+            return True, return_data
     except Exception:
         log.error(traceback.format_exc())
     return False, ''

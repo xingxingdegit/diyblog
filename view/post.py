@@ -21,8 +21,8 @@ def check_view():
     # check  title  and   url
     try:
         re_data = request.args
-        title = re_data.get('title')
-        url = re_data.get('url')
+        title = re_data.get('post_title', '').strip()
+        url = re_data.get('post_url', '').strip()
         return_data = check_something({'title': title, 'url': url})
         if return_data[0]:
             return jsonify({'success': True, 'data': return_data[1]})
@@ -110,10 +110,10 @@ def save_post_view():
     try:
         data = request.get_json()
         use_data = {}
-        use_data['title'] = data['title'].strip()
-        use_data['content'] = data['content']
+        use_data['title'] = data['post_title'].strip()
+        use_data['content'] = data['post_content']
         use_data['code_style'] = data['code_style'].strip()
-        use_data['id'] = int(data.get('id', 0))
+        use_data['id'] = int(data.get('post_id', 0))
     
         return_data = save_post(use_data)
         if return_data[0]:
