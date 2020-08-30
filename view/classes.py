@@ -3,6 +3,7 @@ import logging
 import traceback
 from api.logger import base_log
 from api.classes import get_class_list
+from api.classes import get_tags_list
 
 log = logging.getLogger(__name__)
 
@@ -16,6 +17,19 @@ def get_class_list_view():
         else:
             return_data = get_class_list()
     
+        if return_data[0]:
+            return jsonify({'success': True, 'data': return_data[1]})
+        else:
+            return jsonify({'success': False, 'data': return_data[1]})
+    except Exception:
+        log.error(traceback.format_exc())
+    return jsonify({'success': False, 'data': ''})
+
+
+@base_log
+def get_tags_list_view():
+    try:
+        return_data = get_tags_list()
         if return_data[0]:
             return jsonify({'success': True, 'data': return_data[1]})
         else:

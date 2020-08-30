@@ -19,3 +19,17 @@ def get_class_list(data=None):
     except Exception:
         log.error(traceback.format_exc())
     return False, ''
+
+
+
+@with_db('read')
+def get_tags_list():
+    try:
+        data = g.db.select('tags', fields=['id', 'tagname', 'status'], where={'status': [1, 2]})
+        if data[0]:
+            return True, data[1][1]
+        else:
+            return False, ''
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''

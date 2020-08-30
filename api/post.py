@@ -90,14 +90,18 @@ def del_post(data):
 def get_post_admin(data):
     try:
         id = data['id']
-        if id:
-            data = select('posts', fields=['id', 'title', 'create_time', 'summary', 'posts', 'code_style','class', 'url'], where={'id': id})
-            if len(data) > 1:
-                log.error('func:get_post_admin|post_id:{}|post number > 1'.format(id))
-                return False, ''
-            else:
-                data = data[0]
-                return True, data
+        filter = data.get('filter')
+        if id and filter == 'state_publish':
+            data = select('posts', fields=['id', 'title', 'create_time', 'summary', 'class', 'tags', 'url'], where={'id': id})
+        elif id:
+            data = select('posts', fields=['id', 'title', 'create_time', 'summary', 'posts', 'code_style','class', 'tags', 'url'], where={'id': id})
+        if len(data) > 1:
+            log.error('func:get_post_admin|post_id:{}|post number > 1'.format(id))
+            return False, ''
+        else:
+            data = data[0]
+            data['tags'] = list(map(int, data['tags'].split(',')))
+            return True, data
     except Exception:
         log.error(traceback.format_exc())
     return False, ''
@@ -252,6 +256,61 @@ def save_post(data):
     return False, ''
 
 
+@admin_url_auth_wrapper('api')
+@auth_mode('login')
+@cors_auth()
+@with_db('write')
+def publish_post(data):
+    ''' 通过id判断是更新还是创建。  在第一次保存草稿以后，会返回id值，便于第二次保存变为更新 '''
+    try:
+        title = data['post_title'].strip()
+        content = data['post_content']
+        code_style = data['code_style'].strip()
+        class_id = int(data.get('post_class', 1))
+        tags_id = data.get('post_tags', '')
+        url = data['post_url'].strip()
+        create_time = int(data['post_create_datetime'])
+        update_time = int(data['post_update_datetime'])
+        summary = data.get('post_summary', '').strip()
+        post_id = int(data.get('post_id', 0))
 
+        if len(str(create_time)) > 10:
+            create_time = int(str(create_time)[0:10])
+        if len(str(update_time)) > 10:
+            update_time = int(str(update_time)[0:10])
+
+        if isinstance(tags_id, list):
+            tags_id = ','.join(map(str, tags_id))
+
+        write_data = {
+            'title': title, 
+            'posts': content, 
+            'status': 1, 
+            'code_style': code_style,
+            'class': class_id,
+            'tags': tags_id,
+            'url': url,
+            'create_time': create_time,
+            'update_time': update_time,
+            'summary': summary,
+        }
+        if post_id:
+            state = g.db.update('posts', write_data, where={'id': post_id})
+            # 如果没有更新成功，前端提示注意保存本地
+            if state[0] and state[1]:
+                return True, ''
+            elif state[0] and state[1] == 0:
+                return False, 'not_change'
+        else:
+            timestamp_now = int(datetime.datetime.now().timestamp())
+            write_data['id'] = timestamp_now
+            state = g.db.insert('posts', write_data)
+            if state[0] and state[1]:
+                post_id = select('posts', fields=['id'], where={'title': title})[0]['id']
+                if post_id:
+                    return True, {'id': post_id}
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''
 
 

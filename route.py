@@ -46,6 +46,7 @@ from view.page import back_manage_page
 from view.login import login
 from view.login import get_key
 from view.post import save_post_view
+from view.post import publish_post_view
 from view.post import check_view
 from view.post import get_post_admin_view
 from view.post import get_post_list_view
@@ -63,6 +64,7 @@ app.add_url_rule(rule='/admin/<path:admin_url>/getkey', view_func=get_key, metho
 app.add_url_rule(rule='/admin/<path:admin_url>/login', view_func=login, methods=['POST'])
 # post api
 app.add_url_rule(rule='/admin/<path:admin_url>/post/save', view_func=save_post_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/post/publish', view_func=publish_post_view, methods=['POST'])
 app.add_url_rule(rule='/admin/<path:admin_url>/post/check', view_func=check_view, methods=['GET'])
 app.add_url_rule(rule='/admin/<path:admin_url>/post/get', view_func=get_post_admin_view, methods=['POST'])
 app.add_url_rule(rule='/admin/<path:admin_url>/post/remove', view_func=remove_post_view, methods=['POST'])
@@ -77,7 +79,9 @@ app.add_url_rule(rule='/admin/<path:admin_url>/upload_file', view_func=upload_fi
 # client page
 
 from view.classes import get_class_list_view
+from view.classes import get_tags_list_view
 app.add_url_rule(rule='/class/list', view_func=get_class_list_view, methods=['GET'])
+app.add_url_rule(rule='/tags/list', view_func=get_tags_list_view, methods=['GET'])
 
 
 # websocket event

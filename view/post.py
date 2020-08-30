@@ -11,6 +11,7 @@ from api.post import get_post_list
 from api.post import remove_post
 from api.post import cancel_remove
 from api.post import del_post
+from api.post import publish_post
 
 log = logging.getLogger(__name__)
 
@@ -53,6 +54,7 @@ def get_post_admin_view():
         data = request.get_json()
         use_data = {}
         use_data['id'] = int(data.get('id', 0))
+        use_data['filter'] = data.get('filter', '').strip()
         return_data = get_post_admin(use_data)
         if return_data[0]:
             return jsonify({'success': True, 'data': return_data[1]})
@@ -124,6 +126,19 @@ def save_post_view():
         log.error(traceback.format_exc())
     return jsonify({'success': False, 'data': ''})
 
+@base_log
+@backend_g_admin_url
+def publish_post_view():
+    try:
+        data = request.get_json()
+        return_data = publish_post(data)
+        if return_data[0]:
+            return jsonify({'success': True, 'data': return_data[1]})
+        else:
+            return jsonify({'success': False, 'data': return_data[1]})
+    except Exception:
+        log.error(traceback.format_exc())
+    return jsonify({'success': False, 'data': ''})
 
 
 
