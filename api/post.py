@@ -314,3 +314,63 @@ def publish_post(data):
     return False, ''
 
 
+@admin_url_auth_wrapper('api')
+@auth_mode('login')
+@cors_auth()
+@with_db('write')
+def publish_post_state(data):
+    try:
+        class_id = int(data.get('post_class', 1))
+        tags_id = data.get('post_tags', '')
+        url = data['post_url'].strip()
+        create_time = int(data['post_create_datetime'])
+        update_time = int(data['post_update_datetime'])
+        summary = data.get('post_summary', '').strip()
+        post_id = int(data['post_id'])
+
+        if len(str(create_time)) > 10:
+            create_time = int(str(create_time)[0:10])
+        if len(str(update_time)) > 10:
+            update_time = int(str(update_time)[0:10])
+
+        if isinstance(tags_id, list):
+            tags_id = ','.join(map(str, tags_id))
+
+        write_data = {
+            'status': 1, 
+            'class': class_id,
+            'tags': tags_id,
+            'url': url,
+            'create_time': create_time,
+            'update_time': update_time,
+            'summary': summary,
+        }
+        if post_id:
+            state = g.db.update('posts', write_data, where={'id': post_id})
+            # 如果没有更新成功，前端提示注意保存本地
+            if state[0] and state[1]:
+                return True, ''
+            elif state[0] and state[1] == 0:
+                return False, 'not_change'
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''
+
+
+@admin_url_auth_wrapper('api')
+@auth_mode('login')
+@cors_auth()
+@with_db('write')
+def publish_cancel(data):
+    try:
+        post_id = int(data['post_id'])
+        write_data = {'status': 2}
+        if post_id:
+            state = g.db.update('posts', write_data, where={'id': post_id})
+            # 如果没有更新成功，前端提示注意保存本地
+            if state[0] and state[1]:
+                return True, ''
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''
+

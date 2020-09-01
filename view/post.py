@@ -12,6 +12,8 @@ from api.post import remove_post
 from api.post import cancel_remove
 from api.post import del_post
 from api.post import publish_post
+from api.post import publish_post_state
+from api.post import publish_cancel
 
 log = logging.getLogger(__name__)
 
@@ -140,5 +142,31 @@ def publish_post_view():
         log.error(traceback.format_exc())
     return jsonify({'success': False, 'data': ''})
 
+@base_log
+@backend_g_admin_url
+def publish_post_state_view():
+    try:
+        data = request.get_json()
+        return_data = publish_post_state(data)
+        if return_data[0]:
+            return jsonify({'success': True, 'data': return_data[1]})
+        else:
+            return jsonify({'success': False, 'data': return_data[1]})
+    except Exception:
+        log.error(traceback.format_exc())
+    return jsonify({'success': False, 'data': ''})
 
+@base_log
+@backend_g_admin_url
+def publish_cancel_view():
+    try:
+        data = request.get_json()
+        return_data = publish_cancel(data)
+        if return_data[0]:
+            return jsonify({'success': True, 'data': return_data[1]})
+        else:
+            return jsonify({'success': False, 'data': return_data[1]})
+    except Exception:
+        log.error(traceback.format_exc())
+    return jsonify({'success': False, 'data': ''})
 
