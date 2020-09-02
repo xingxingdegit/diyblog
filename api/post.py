@@ -142,7 +142,7 @@ def handle_post_info(data):
     for note in data:
         tag_list = []
         for tag_id in note['tags'].split(','):
-            tag_list.append(tags_dict.get(tag_id, ''))
+            tag_list.append(tags_dict.get(int(tag_id), ''))
         note['tags_str'] = ','.join(tag_list)
         note['classes_str'] = classes_dict[note['class']]
 

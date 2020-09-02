@@ -136,8 +136,10 @@ def create_table():
               `filename` VARCHAR(70) NOT NULL UNIQUE COMMENT '文件名称',
               `pathname` VARCHAR(100) NOT NULL COMMENT '在系统上的存放路径,同时也是对外的路径，包含文件名称',
               `mimetype` VARCHAR(50) NOT NULL,
-              `size` int(10) UNSIGNED NOT NULL,
+              `size` int(10) UNSIGNED NOT NULL COMMENT '文件大小',
+              `size2` varchar(15) DEFAULT '' COMMENT '图片尺寸',
               `uptime` int(10) UNSIGNED NOT NULL,
+              `status` tinyint(4) DEFAULT 1 COMMENT '1正常，2已删除',
               `intro` VARCHAR(100) DEFAULT NULL,
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
