@@ -137,8 +137,10 @@ def create_table():
               `pathname` VARCHAR(100) NOT NULL COMMENT '在系统上的存放路径,同时也是对外的路径，包含文件名称',
               `mimetype` VARCHAR(50) NOT NULL,
               `size` int(10) UNSIGNED NOT NULL COMMENT '文件大小',
-              `size2` varchar(15) DEFAULT '' COMMENT '图片尺寸',
+              `width` int(10) UNSIGNED DEFAULT '0' COMMENT '图片宽度',
+              `height` int(10) UNSIGNED DEFAULT '0' COMMENT '图片高度',
               `uptime` int(10) UNSIGNED NOT NULL,
+              `is_image` tinyint(4) DEFAULT 1 COMMENT '1是图片，2不是',
               `status` tinyint(4) DEFAULT 1 COMMENT '1正常，2已删除',
               `intro` VARCHAR(100) DEFAULT NULL,
               PRIMARY KEY (`id`)

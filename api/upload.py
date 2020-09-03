@@ -9,6 +9,8 @@ import random
 from config import site_url
 from config import basedir
 from pathlib import Path
+from PIL import Image, UnidentifiedImageError
+from io import BytesIO
 
 log = logging.getLogger(__name__)
 
@@ -47,9 +49,9 @@ def upload_file(files, file_size):
             save_path = Path('static/upload') / '{}'.format(now.year) / '{:02}'.format(now.month) / filename
             system_path = basedir / save_path
             system_path.parent.mkdir(parents=True, exist_ok=True)
-            log.error(system_path)
+
             db_data = {'filename': filename, 'pathname': str(save_path), 
-                       'mimetype': mimetype, 'size': file_size, 'uptime': int(now.timestamp())}
+                      'mimetype': mimetype, 'size': file_size, 'uptime': int(now.timestamp())}
             g.db.begin()
             state = g.db.insert('attach', db_data)
             if state[0]:
@@ -62,6 +64,20 @@ def upload_file(files, file_size):
                     g.db.commit()
                     url_path = '{}/{}'.format(site_url, save_path)
                     return_data[pos] = url_path.replace('\\', '/')
+            try:
+                im = Image.open(system_path)
+            except UnidentifiedImageError:
+                image_width, image_height = (0, 0)
+                is_image = 2
+            else:
+                image_width, image_height = im.size
+                is_image = 1
+            finally:
+                im.close()
+            
+            db_data = {'width': image_width, 'height': image_height, 'is_image': is_image}
+            g.db.update('attach', db_data, where={'filename': filename})
+            
 
 # 这里会导致没有上传任何东西也会返回True
 #        else:
