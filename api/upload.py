@@ -50,7 +50,7 @@ def upload_file(files, file_size):
             system_path = basedir / save_path
             system_path.parent.mkdir(parents=True, exist_ok=True)
 
-            db_data = {'filename': filename, 'pathname': str(save_path), 
+            db_data = {'filename': filename, 'pathname': str(save_path).replace('\\', '/'), 
                       'mimetype': mimetype, 'size': file_size, 'uptime': int(now.timestamp())}
             g.db.begin()
             state = g.db.insert('attach', db_data)

@@ -140,6 +140,7 @@ def create_table():
               `width` int(10) UNSIGNED DEFAULT '0' COMMENT '图片宽度',
               `height` int(10) UNSIGNED DEFAULT '0' COMMENT '图片高度',
               `uptime` int(10) UNSIGNED NOT NULL,
+              `private` tinyint(4) DEFAULT 1 COMMENT '1公开的， 2私有的',
               `is_image` tinyint(4) DEFAULT 1 COMMENT '1是图片，2不是',
               `status` tinyint(4) DEFAULT 1 COMMENT '1正常，2已删除',
               `intro` VARCHAR(100) DEFAULT NULL,

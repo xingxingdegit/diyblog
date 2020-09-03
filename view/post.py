@@ -2,7 +2,6 @@ from flask import render_template, g, make_response, request, jsonify
 import logging
 import traceback
 from api.logger import base_log
-from api.dbpool import with_db
 from api.auth import backend_g_admin_url
 from api.post import save_post
 from api.post import check_something
