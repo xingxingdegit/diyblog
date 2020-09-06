@@ -1,13 +1,14 @@
 from api.dbpool import with_db
 from api.auth import admin_url_auth_wrapper, auth_mode, cors_auth
 from api.setting import get_setting
-from flask import g
+from flask import g, url_for
 import logging
 import traceback
 import datetime
 import random
 from config import site_url
 from config import basedir
+from config import private_data_dir
 from pathlib import Path
 from PIL import Image, UnidentifiedImageError
 from io import BytesIO
@@ -18,12 +19,13 @@ log = logging.getLogger(__name__)
 @auth_mode('login')
 @cors_auth('cookie')
 @with_db('write')
-def upload_file(files, file_size):
+def upload_file(files, file_size, other_data):
     try:
         return_data = {}
         filenames = []
         for pos in files:
             now = datetime.datetime.now()
+            private = int(other_data.get('private', 1))
             ext_name = files[pos].filename.split('.')[-1]
             mimetype = files[pos].mimetype
             first_type, _ = mimetype.split('/')
@@ -46,11 +48,17 @@ def upload_file(files, file_size):
             filename += '.{}'.format(ext_name)
             filenames.append(filename)
 
-            save_path = Path('static/upload') / '{}'.format(now.year) / '{:02}'.format(now.month) / filename
-            system_path = basedir / save_path
+            if private == 1:
+                save_path = Path('static/upload') / '{}'.format(now.year) / '{:02}'.format(now.month) / filename
+                system_path = basedir / save_path
+            elif private == 2:
+                save_path = Path() / '{}'.format(now.year) / '{:02}'.format(now.month) / filename
+                system_path = basedir / private_data_dir / save_path
+            else:
+                return False, ''
             system_path.parent.mkdir(parents=True, exist_ok=True)
 
-            db_data = {'filename': filename, 'pathname': str(save_path).replace('\\', '/'), 
+            db_data = {'filename': filename, 'pathname': str(save_path).replace('\\', '/'), 'private': private, 
                       'mimetype': mimetype, 'size': file_size, 'uptime': int(now.timestamp())}
             g.db.begin()
             state = g.db.insert('attach', db_data)
@@ -62,7 +70,10 @@ def upload_file(files, file_size):
                     g.db.rollback()
                 else:
                     g.db.commit()
-                    url_path = '{}/{}'.format(site_url, save_path)
+                    if private == 2:
+                        url_path = '{}{}'.format(site_url, url_for('get_private_file_view', private_file=filename))
+                    else:
+                        url_path = '{}/{}'.format(site_url, save_path)
                     return_data[pos] = url_path.replace('\\', '/')
             try:
                 im = Image.open(system_path)

@@ -78,19 +78,23 @@ app.add_url_rule(rule='/admin/<path:admin_url>/post/get_list', view_func=get_pos
 # other api
 app.add_url_rule(rule='/admin/<path:admin_url>/get_url', view_func=get_url_view, methods=['GET'])
 app.add_url_rule(rule='/admin/<path:admin_url>/upload_file', view_func=upload_file_view, methods=['POST'])
-#####################################
 
-# attach manage
+# attach api
 
 from view.attach import get_attach_list_view
 from view.attach import get_mini_photo_view
+from view.attach import get_mimetype_list_view
+from view.attach import get_private_file_view
 
-app.add_url_rule(rule='/attach/get_list', view_func=get_attach_list_view, methods=['GET'])
-app.add_url_rule(rule='/attach/get_mini_photo', view_func=get_mini_photo_view, methods=['GET'])
+app.add_url_rule(rule='/admin/<path:admin_url>/attach/get_list', view_func=get_attach_list_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/attach/get_mini_photo', view_func=get_mini_photo_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/attach/mimetype_list', view_func=get_mimetype_list_view, methods=['GET'])
+app.add_url_rule(rule='/attach/get_private_file/<private_file>', view_func=get_private_file_view, methods=['GET'])
 
 
 
 
+#####################################
 
 
 #####################################

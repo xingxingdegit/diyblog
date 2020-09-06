@@ -3,8 +3,16 @@ from pathlib import Path
 
 basedir = Path(__file__).absolute().parent.parent
 
+# Path type
 log_file = basedir / 'log/access.log'
 err_file = basedir / 'log/error.log'
+
+# Path type,  不公开的图片存放位置, 系统的绝对路径, 也可以写相对路径.
+#private_data_dir = 'data'           # 相对路径， 相对于项目的路径
+#private_data_dir = '/data'
+private_data_dir = 'G:/00000/data'
+#########################
+
 
 site_url = 'http://localhost:8080'   # 需要拼接url，  也跟安全认证有关,
 

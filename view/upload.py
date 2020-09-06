@@ -13,9 +13,10 @@ log = logging.getLogger(__name__)
 def upload_file_view():
     try:
         files = request.files
+        other_data = request.form
         headers = request.headers
         file_size = int(headers.get('Content-Length', 0))
-        return_data = upload_file(files, file_size)
+        return_data = upload_file(files, file_size, other_data)
         if return_data[0]:
             return jsonify({'success': True, 'data': return_data[1]})
         else:
