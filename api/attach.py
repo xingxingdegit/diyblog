@@ -1,6 +1,6 @@
 from api.dbpool import with_db, select, with_redis
 from api.auth import admin_url_auth_wrapper, auth_mode, cors_auth
-from flask import g
+from flask import g, url_for
 import logging
 import traceback
 import datetime
@@ -44,24 +44,43 @@ def get_private_file(private_file):
         log.error(traceback.format_exc())
     return False, ''
 
+
 @admin_url_auth_wrapper('api')
 @auth_mode('login')
 @cors_auth()
 @with_db('read')
 def get_mini_photo(data):
+    filename = data['filename']
+    size_level = data['size_level']
+    return make_mini_photo(filename, size_level)
+
+
+def make_mini_photo(filename, size_level):
     try:
-        filename = data['filename']
-        size_level = data['size_level']
         level = {1: (64, 64), 2: (128, 128), 3: (256, 256), 4: (512, 512)}
-        file_info = select('attach', fields=['pathname', 'mimetype', 'is_image'], where={'filename': filename, 'private': 1})[0]
+        file_info = select('attach', fields=['pathname', 'mimetype', 'private', 'is_image'], where={'filename': filename})[0]
         if file_info:
             pathname = file_info['pathname']
             is_image = file_info['is_image']
-            if is_image:
-                mini_file_pathname = os.path.dirname(pathname) + '/_{}_{}'.format(level[size_level][0], filename)
-                url_path = '{}/{}'.format(site_url, mini_file_pathname)
-                src_file_pathname = basedir / pathname
-                dest_file_pathname = basedir / mini_file_pathname
+            private = file_info['private']
+
+            only_filename, ext_name = filename.split('.')
+
+            if is_image == 1:
+                mini_filename = '{}_{}.{}'.format(only_filename, level[size_level][0], ext_name)
+                mini_file_pathname = os.path.dirname(pathname) + '/{}'.format(mini_filename)
+
+                if private == 1:
+                    url_path = '{}/{}'.format(site_url, mini_file_pathname)
+                    src_file_pathname = basedir / pathname
+                    dest_file_pathname = basedir / mini_file_pathname
+                elif private == 2:
+                    url_path = '{}{}'.format(site_url, url_for('get_private_file_view', private_file=mini_filename))
+                    src_file_pathname = basedir / private_data_dir / pathname
+                    dest_file_pathname = basedir / private_data_dir / mini_file_pathname
+                else:
+                    return False, ''
+
                 if dest_file_pathname.exists():
                     return True, url_path
                 else:
@@ -102,8 +121,9 @@ def get_attach_list(data):
         attach_num_per_page = int(data['attach_num_per_page'])
         offset = (page_num - 1) * attach_num_per_page
         search_on = data.get('search_on', False)
+        size_level = int(data.get('size_level', 0))
 
-        fields=['id', 'filename', 'pathname', 'mimetype', 'size', 'width', 'height', 'uptime', 'status', 'private', 'intro']
+        fields=['id', 'filename', 'is_image', 'pathname', 'mimetype', 'size', 'width', 'height', 'uptime', 'status', 'private', 'intro']
         if search_on is True:
             new_fields = list(map(lambda x: '`{}`'.format(x), fields))
             sql = r'''select {} from `attach` where '''.format(','.join(new_fields))
@@ -113,6 +133,7 @@ def get_attach_list(data):
             mimetype = data.get('search_mimetype', '').strip()
             private = int(data.get('search_private', 0))
             status = int(data.get('search_status', 1))
+            log.warn(status)
             search_where = []
             if mimetype:
                 search_where.append('`mimetype` = "{}"'.format(g.db.conn.escape_string(mimetype)))
@@ -120,6 +141,8 @@ def get_attach_list(data):
                 search_where.append('`private` = "{}"'.format(private))
             if status:
                 search_where.append('`status` = "{}"'.format(status))
+            else:
+                search_where.append('`status` = "1"')
             sql_where = r' and '.join(search_where)
             sql += sql_where
             sql += r' order by `uptime` desc limit {},{};'.format(offset, attach_num_per_page)
@@ -139,6 +162,24 @@ def get_attach_list(data):
             total_attach_num = g.db.cur.fetchone()[0]
         else:
             total_attach_num = 0
+
+        # 添加文件下载地址
+        for file_data in data:
+            if file_data['private'] == 1:
+                file_data['url'] = '{}/{}'.format(site_url, file_data['pathname'])
+            elif file_data['private'] == 2:
+                file_data['url'] = '{}{}'.format(site_url, url_for('get_private_file_view', private_file=file_data['filename']))
+            else:
+                return False, ''
+            del file_data['pathname']
+        
+            # 添加缩略图下载地址
+            if size_level:
+                state, url = make_mini_photo(file_data['filename'], size_level)
+                if state:
+                    file_data['mini_url'] = url
+                else:
+                    file_data['mini_url'] = False
 
         return_data = {'list_data': data, 'total_attach_num': total_attach_num}
 

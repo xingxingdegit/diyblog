@@ -37,7 +37,7 @@ def upload_file(files, file_size, other_data):
                 log.error('fund:upload_file|file_size:{}|file size > setting'.format(file_size))
                 break
             if first_type not in setting['upload_file_mime'].split(','):
-                log.error('fund:upload_file|file_mime:{}|master mime not in setting'.format(first_type))
+                log.error('fund:upload_file|file_mime:{}|first mime not in setting'.format(first_type))
                 break
 
             filename = first_type + '-'
@@ -84,7 +84,10 @@ def upload_file(files, file_size, other_data):
                 image_width, image_height = im.size
                 is_image = 1
             finally:
-                im.close()
+                try:
+                    im.close()
+                except UnboundLocalError:
+                    pass
             
             db_data = {'width': image_width, 'height': image_height, 'is_image': is_image}
             g.db.update('attach', db_data, where={'filename': filename})

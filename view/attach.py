@@ -13,12 +13,10 @@ log = logging.getLogger(__name__)
 @base_log
 def get_private_file_view(private_file):
     try:
-        log.warn(private_file)
         private_file = private_file.strip()
         if '/' not in private_file:
             if '\\' not in private_file:
                 state = get_private_file(private_file)
-                log.warn(state)
                 if state[0]:
                     return send_file(state[1])
 
@@ -58,7 +56,7 @@ def get_attach_list_view():
 @backend_g_admin_url
 def get_mini_photo_view():
     try:
-        re_data = request.args
+        re_data = request.get_json()
         filename = re_data.get('filename', '').strip()
         size_level = int(re_data.get('size_level', 1))
 
