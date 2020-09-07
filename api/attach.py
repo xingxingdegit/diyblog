@@ -14,6 +14,173 @@ from api.setting import get_setting
 log = logging.getLogger(__name__)
 
 
+@admin_url_auth_wrapper('api')
+@auth_mode('login')
+@cors_auth()
+@with_db('write')
+def invalid_attach(data):
+    '''失效附件'''
+    try:
+        filename = data.get('file_name', '').strip()
+        file_id = int(data.get('file_id', 0))
+        only_filename, ext_name = filename.split('.')
+        file_info = select('attach', fields=['pathname', 'private', 'status'], where={'filename': filename, 'id': file_id})[0]
+        if file_info:
+            pathname = file_info['pathname']
+            private = file_info['private']
+            status = file_info['status']
+            if status == 2:
+                return False, 'file already invalid'
+
+            invalid_filename = '{}_{}.{}'.format(only_filename, 'invalid', ext_name)
+            invalid_file_pathname = os.path.dirname(pathname) + '/{}'.format(invalid_filename)
+            if private == 1:
+                src_file_pathname = basedir / pathname
+                dest_file_pathname = basedir / invalid_file_pathname
+            elif private == 2:
+                src_file_pathname = basedir / private_data_dir / pathname
+                dest_file_pathname = basedir / private_data_dir / invalid_file_pathname
+            else:
+                log.error('fund:invalid_attach|private:{}|private is error'.format(private))
+                return False, ''
+            try:
+                g.db.begin()
+                state = g.db.update('attach', {'status': 2}, where={'filename': filename, 'id': file_id})
+                if state[0] and state[1] == 1:
+                    os.rename(src_file_pathname, dest_file_pathname)
+                    g.db.commit()
+                    return True, ''
+                else:
+                    g.db.rollback()
+                    log.error('fund:invalid_attach|state:{}|db exec state is error'.format(state))
+            except Exception:
+                log.error(traceback.format_exc())
+                g.db.rollback()
+
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''
+
+
+@admin_url_auth_wrapper('api')
+@auth_mode('login')
+@cors_auth()
+@with_db('write')
+def recover_attach(data):
+    '''恢复附件'''
+    try:
+        filename = data.get('file_name', '').strip()
+        file_id = int(data.get('file_id', 0))
+        only_filename, ext_name = filename.split('.')
+        file_info = select('attach', fields=['pathname', 'private', 'status'], where={'filename': filename, 'id': file_id})[0]
+        if file_info:
+            pathname = file_info['pathname']
+            private = file_info['private']
+            status = file_info['status']
+            if status == 1:
+                return False, 'file already recover'
+
+            invalid_filename = '{}_{}.{}'.format(only_filename, 'invalid', ext_name)
+            invalid_file_pathname = os.path.dirname(pathname) + '/{}'.format(invalid_filename)
+            if private == 1:
+                src_file_pathname = basedir / invalid_file_pathname
+                dest_file_pathname = basedir / pathname
+            elif private == 2:
+                src_file_pathname = basedir / private_data_dir / invalid_file_pathname
+                dest_file_pathname = basedir / private_data_dir / pathname
+            else:
+                log.error('fund:recover_attach|private:{}|private is error'.format(private))
+                return False, ''
+            try:
+                g.db.begin()
+                state = g.db.update('attach', {'status': 1}, where={'filename': filename, 'id': file_id})
+                if state[0] and state[1] == 1:
+                    os.rename(src_file_pathname, dest_file_pathname)
+                    g.db.commit()
+                    return True, ''
+                else:
+                    g.db.rollback()
+                    log.error('fund:recover_attach|state:{}|db exec state is error'.format(state))
+            except Exception:
+                log.error(traceback.format_exc())
+                g.db.rollback()
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''
+
+
+@admin_url_auth_wrapper('api')
+@auth_mode('login')
+@cors_auth()
+@with_db('write')
+def delete_attach(data):
+    '''删除附件'''
+    try:
+        filename = data.get('file_name', '').strip()
+        file_id = int(data.get('file_id', 0))
+        file_info = select('attach', fields=['pathname', 'private', 'status'], where={'filename': filename, 'id': file_id})[0]
+        if file_info:
+            pathname = file_info['pathname']
+            private = file_info['private']
+            status = file_info['status']
+            if status == 1:
+                dest_file_pathname = pathname
+            elif status == 2:
+                only_filename, ext_name = filename.split('.')
+                dest_filename = '{}_{}.{}'.format(only_filename, 'invalid', ext_name)
+                dest_file_pathname = os.path.dirname(pathname) + '/{}'.format(dest_filename)
+            else:
+                log.error('fund:delete_attach|status:{}|status is error'.format(status))
+                return False, ''
+
+            if private == 1:
+                sys_file_pathname = basedir / dest_file_pathname
+            elif private == 2:
+                sys_file_pathname = basedir / private_data_dir / dest_file_pathname
+            else:
+                log.error('fund:delete_attach|private:{}|private is error'.format(private))
+                return False, ''
+            try:
+                g.db.begin()
+                state = g.db.delete('attach', where={'filename': filename, 'id': file_id})
+                if state[0] and state[1] == 1:
+                    os.remove(sys_file_pathname)
+                    g.db.commit()
+                    delete_mini_photo(pathname, private)
+                    return True, ''
+                else:
+                    g.db.rollback()
+                    log.error('fund:delete_attach|state:{}|db exec state is error'.format(state))
+            except Exception:
+                log.error(traceback.format_exc())
+                g.db.rollback()
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''
+
+def delete_mini_photo(pathname, private):
+    dir_pathname, filename = os.path.split(pathname)
+    if private == 1:
+        sys_dest_dirpath = basedir / dir_pathname
+    elif private == 2:
+        sys_dest_dirpath = basedir / private_data_dir / dir_pathname
+    else:
+        log.error('fund:delete_mini_photo|private:{}|private is error'.format(private))
+        return False
+
+    only_filename, ext_name = filename.split('.')
+    for size in ('64', '128', '256', '512'):
+        dest_filename = '{}_{}.{}'.format(only_filename, size, ext_name)
+        sys_file_pathname = sys_dest_dirpath / dest_filename
+        if sys_file_pathname.exists():
+            try:
+                os.remove(sys_file_pathname)
+            except Exception:
+                pass
+    else:
+        return True
+
+
 @auth_mode('login')
 def get_private_file(private_file):
     try:
@@ -133,7 +300,6 @@ def get_attach_list(data):
             mimetype = data.get('search_mimetype', '').strip()
             private = int(data.get('search_private', 0))
             status = int(data.get('search_status', 1))
-            log.warn(status)
             search_where = []
             if mimetype:
                 search_where.append('`mimetype` = "{}"'.format(g.db.conn.escape_string(mimetype)))
@@ -153,7 +319,7 @@ def get_attach_list(data):
                 return False, ''
         else:
             sql_where = '`status` = 1'
-            data = select('attach', fields=fields, where={'status': [1, 2]}, sort_field='uptime', limit=attach_num_per_page, offset=offset)
+            data = select('attach', fields=fields, where={'status': 1}, sort_field='uptime', limit=attach_num_per_page, offset=offset)
 
         total_num_sql = r'''select count(id) from `attach` where {}'''.format(sql_where)
         # 查询复合条件的有多少条， 作为前端'总条数'的展示数据

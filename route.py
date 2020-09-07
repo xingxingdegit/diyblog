@@ -85,10 +85,16 @@ from view.attach import get_attach_list_view
 from view.attach import get_mini_photo_view
 from view.attach import get_mimetype_list_view
 from view.attach import get_private_file_view
+from view.attach import invalid_attach_view
+from view.attach import recover_attach_view
+from view.attach import delete_attach_view
 
 app.add_url_rule(rule='/admin/<path:admin_url>/attach/get_list', view_func=get_attach_list_view, methods=['POST'])
 app.add_url_rule(rule='/admin/<path:admin_url>/attach/get_mini_photo', view_func=get_mini_photo_view, methods=['POST'])
 app.add_url_rule(rule='/admin/<path:admin_url>/attach/mimetype_list', view_func=get_mimetype_list_view, methods=['GET'])
+app.add_url_rule(rule='/admin/<path:admin_url>/attach/invalid_file', view_func=invalid_attach_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/attach/recover_file', view_func=recover_attach_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/attach/delete_file', view_func=delete_attach_view, methods=['POST'])
 app.add_url_rule(rule='/attach/get_private_file/<private_file>', view_func=get_private_file_view, methods=['GET'])
 
 
