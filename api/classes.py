@@ -76,9 +76,24 @@ def get_class_list(data=None):
 
 
 @with_db('read')
-def get_tags_list():
+def get_tags_list(data=None):
     try:
-        data = g.db.select('tags', fields=['id', 'tagname', 'status', 'intro'], where={'status': [1, 2]})
+        fields = ['id', 'tagname', 'status', 'intro']
+        if data:
+            with_op = data.get('with', '').strip()
+            if with_op == 'with_page':
+                page_num = int(data['page_num'])
+                tag_num_per_page = int(data['tag_num_per_page'])
+                offset = (page_num - 1) * tag_num_per_page
+                data = select('tags', fields=fields, where={'status': [1, 2]}, sort_field='id', limit=tag_num_per_page, offset=offset)
+                total_num_sql = r'''select count(id) from `tags` where `status` in (1, 2);'''
+                state = g.db.query(total_num_sql)
+                if state[0]:
+                    total_tag_num = g.db.cur.fetchone()[0]
+                    return_data = {'list_data': data, 'total_tag_num': total_tag_num}
+                    return True, return_data
+
+        data = g.db.select('tags', fields=fields, where={'status': [1, 2]})
         if data[0]:
             return True, data[1][1]
         else:
@@ -125,17 +140,17 @@ def add_tag(data):
         tag_id = int(data.get('tag_id', 0))
         tag_name = data['tag_name'].strip()
         tag_status = int(data['tag_status'])
-        tag_intro = data.get('tag_intro').strip()
+        tag_intro = data.get('tag_intro', '').strip()
 
         # 有id表示更新， 没id表示添加
         if tag_id:
             write_data = {'tagname': tag_name, 'status': tag_status, 'intro': tag_intro}
-            state = g.db.update('tag', write_data, where={'id': tag_id})
+            state = g.db.update('tags', write_data, where={'id': tag_id})
             if state[0]:
                 return True, ''
         else:
             write_data = {'tagname': tag_name, 'status': tag_status, 'intro': tag_intro}
-            state = g.db.insert('tag', write_data)
+            state = g.db.insert('tags', write_data)
             if state[0]:
                 return True, ''
     except Exception:
@@ -173,7 +188,7 @@ def del_tag(data):
         tag_name = data['tag_name'].strip()
 
         where_data = {'id': tag_id, 'tagname': tag_name}
-        state = g.db.delete('tag', where=where_data)
+        state = g.db.delete('tags', where=where_data)
         if state[0]:
             return True, ''
     except Exception:

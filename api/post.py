@@ -142,7 +142,10 @@ def handle_post_info(data):
     for note in data:
         tag_list = []
         for tag_id in note['tags'].split(','):
-            tag_list.append(tags_dict.get(int(tag_id), ''))
+            try:
+                tag_list.append(tags_dict[int(tag_id)])
+            except KeyError:
+                pass
         note['tags_str'] = ','.join(tag_list)
         note['classes_str'] = classes_dict.get(note['class'], '')
 

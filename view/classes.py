@@ -67,7 +67,8 @@ def get_class_list_view():
 @base_log
 def get_tags_list_view():
     try:
-        return_data = get_tags_list()
+        args = request.args
+        return_data = get_tags_list(args)
         if return_data[0]:
             return jsonify({'success': True, 'data': return_data[1]})
         else:
