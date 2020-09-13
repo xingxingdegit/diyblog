@@ -169,7 +169,7 @@ def delete_mini_photo(pathname, private):
         return False
 
     only_filename, ext_name = filename.split('.')
-    for size in ('64', '128', '256', '512'):
+    for size in ('64', '128', '256', '512', '1024', '2048', '4096'):
         dest_filename = '{}_{}.{}'.format(only_filename, size, ext_name)
         sys_file_pathname = sys_dest_dirpath / dest_filename
         if sys_file_pathname.exists():
@@ -224,7 +224,7 @@ def get_mini_photo(data):
 
 def make_mini_photo(filename, size_level):
     try:
-        level = {1: (64, 64), 2: (128, 128), 3: (256, 256), 4: (512, 512)}
+        level = {1: (64, 64), 2: (128, 128), 3: (256, 256), 4: (512, 512), 5: (1024, 1024), 6: (2048, 2048), 7: (4096, 4096)}
         file_info = select('attach', fields=['pathname', 'mimetype', 'private', 'is_image'], where={'filename': filename})[0]
         if file_info:
             pathname = file_info['pathname']

@@ -98,7 +98,25 @@ app.add_url_rule(rule='/admin/<path:admin_url>/attach/delete_file', view_func=de
 app.add_url_rule(rule='/attach/get_private_file/<private_file>', view_func=get_private_file_view, methods=['GET'])
 
 
+# class and tag
 
+from view.classes import check_classname_view
+from view.classes import check_tagname_view
+from view.classes import get_class_list_view
+from view.classes import get_tags_list_view
+from view.classes import add_class_view
+from view.classes import add_tag_view
+from view.classes import del_class_view
+from view.classes import del_tag_view
+
+app.add_url_rule(rule='/class/list', view_func=get_class_list_view, methods=['GET'])
+app.add_url_rule(rule='/tags/list', view_func=get_tags_list_view, methods=['GET'])
+app.add_url_rule(rule='/admin/<path:admin_url>/class/check', view_func=check_classname_view, methods=['GET'])
+app.add_url_rule(rule='/admin/<path:admin_url>/tag/check', view_func=check_tagname_view, methods=['GET'])
+app.add_url_rule(rule='/admin/<path:admin_url>/class/add', view_func=add_class_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/tag/add', view_func=add_tag_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/class/del', view_func=del_class_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/tag/del', view_func=del_tag_view, methods=['POST'])
 
 #####################################
 
@@ -107,10 +125,6 @@ app.add_url_rule(rule='/attach/get_private_file/<private_file>', view_func=get_p
 
 # client page
 
-from view.classes import get_class_list_view
-from view.classes import get_tags_list_view
-app.add_url_rule(rule='/class/list', view_func=get_class_list_view, methods=['GET'])
-app.add_url_rule(rule='/tags/list', view_func=get_tags_list_view, methods=['GET'])
 
 #####################################
 # websocket event

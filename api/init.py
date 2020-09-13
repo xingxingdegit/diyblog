@@ -93,7 +93,7 @@ def create_table():
                 `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
                 `classname` varchar(100) NOT NULL unique,
                 `status` tinyint(4) DEFAULT 1 COMMENT '是否在主页显示，1显示，2不显示',
-                `sort` tinyint(4) DEFAULT 0 COMMENT '在主页展示时的排列顺序',
+                `sort` tinyint(4) DEFAULT 1 COMMENT '在主页展示时的排列顺序',
                 `intro` varchar(100) DEFAULT NULL,
                 PRIMARY KEY (`id`)
               ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
