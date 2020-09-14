@@ -38,7 +38,7 @@ def init_setting(data):
         set_data = []
         sitename = data.get('sitename', '').strip()
         admin_url = data.get('admin_url', 'admin_back').strip()
-        set_data.append({'key': 'install_init', 'value': 1, 'intro': '1表示已经初始化过了'})
+        set_data.append({'key': 'install_init', 'value': 1, 'status': 2, 'intro': '1表示已经初始化过了'})
         set_data.append({'key': 'sitename', 'value': sitename, 'intro': '昵称'})
         set_data.append({'key': 'admin_url', 'value': admin_url, 'intro': '后台登录地址'})
         set_data.append({'key': 'avatar_url', 'value': 'static/image/123.jpg', 'intro': '头像路径'})
@@ -125,6 +125,7 @@ def create_table():
               `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
               `key` VARCHAR(50) NOT NULL COMMENT '设置项',
               `value` VARCHAR(50) NOT NULL,
+              `status` tinyint(4) DEFAULT 1 COMMENT '1正常， 2不可修改',
               `intro` VARCHAR(100) DEFAULT NULL,
               PRIMARY KEY (`id`),
               UNIQUE KEY `key` (`key`)
@@ -148,13 +149,28 @@ def create_table():
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
             '''
 
+    # 如果添加聊天的功能， 聊天信息不存储， 只路由。
+    notice_sql = r'''
+              CREATE TABLE IF NOT EXISTS `notice` (
+              `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+              `title` VARCHAR(70) DEFAULT '' COMMENT '标题',
+              `content` VARCHAR(100) NOT NULL COMMENT '内容',
+              `uptime` int(10) UNSIGNED NOT NULL,
+              `status` tinyint(4) DEFAULT 1 COMMENT '1静态公告，2动态公告, 3用户留言板',
+              `intro` VARCHAR(100) DEFAULT NULL,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+            '''
+
+
     p = g.db.query(posts_sql)
     c = g.db.query(class_sql)
     t = g.db.query(tags_sql)
     u = g.db.query(users_sql)
     s = g.db.query(setting_sql)
     a = g.db.query(attach_sql)
-    if p[0] and c[0] and t[0] and u[0] and s[0] and a[0]:
+    n = g.db.query(notice_sql)
+    if p[0] and c[0] and t[0] and u[0] and s[0] and a[0] and n[0]:
         return True
     else:
         return False

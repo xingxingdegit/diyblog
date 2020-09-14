@@ -13,6 +13,7 @@ from api.attach import delete_attach
 
 log = logging.getLogger(__name__)
 
+
 @base_log
 @backend_g_admin_url
 def invalid_attach_view():

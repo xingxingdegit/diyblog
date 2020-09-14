@@ -66,6 +66,11 @@ DATABASES = {
     },
 }
 
+# 用来缓存配置的redis key名称, 是个字典结构。
+redis_setting_name = 'diyblog_setting_common'
+# 可以缓存redis的配置项
+redis_comm_list = {'admin_url', 'user_timeout', 'sitename', 'avatar_url', 'upload_file_size', 'upload_file_ext', 'upload_file_mime'}
+
 try:
     from config_local import *
 except Exception:

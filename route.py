@@ -118,6 +118,14 @@ app.add_url_rule(rule='/admin/<path:admin_url>/tag/add', view_func=add_tag_view,
 app.add_url_rule(rule='/admin/<path:admin_url>/class/del', view_func=del_class_view, methods=['POST'])
 app.add_url_rule(rule='/admin/<path:admin_url>/tag/del', view_func=del_tag_view, methods=['POST'])
 
+
+
+# setting
+from view.setting import get_all_setting_view
+from view.setting import set_setting_view
+
+app.add_url_rule(rule='/admin/<path:admin_url>/setting/get_all', view_func=get_all_setting_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/setting/set', view_func=set_setting_view, methods=['POST'])
 #####################################
 
 
