@@ -50,8 +50,8 @@ def init_setting(data):
         set_data.append({'key': 'login_fail_count', 'value': 10, 'intro': '连续登录失败10次，进登录黑名单'})
         set_data.append({'key': 'login_fail_lasttime', 'value': 60, 'intro': '在没有进黑名单的情况下，超过这个时间的登录会清零登录失败计数，秒'})
         set_data.append({'key': 'upload_file_size', 'value': 10000000, 'intro': '单位Byte'})
-        set_data.append({'key': 'upload_file_ext', 'value': 'png,jpg,jpeg,gif', 'intro': '允许上传的扩展名, 逗号分隔'})
-        set_data.append({'key': 'upload_file_mime', 'value': 'image', 'intro': '允许上传的mime主类型。逗号分隔'})
+        set_data.append({'key': 'upload_file_ext', 'value': 'png,jpg,jpeg,gif,txt,tar,zip', 'intro': '允许上传的扩展名, 逗号分隔'})
+        set_data.append({'key': 'upload_file_mime', 'value': 'image,text,application', 'intro': '允许上传的mime主类型。逗号分隔'})
         set_state = g.db.insert('setting', set_data)
 
         class_data = []
