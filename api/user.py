@@ -1,13 +1,13 @@
 import logging
 import random
 from cryptography.fernet import Fernet
-from flask import g
+from flask import g, request
 from api.dbpool import  with_db, with_redis
 from api.auth import client_ip_unsafe
 import datetime
 from hashlib import sha256
 import traceback
-from api.auth import admin_url_auth, admin_url_auth_wrapper
+from api.auth import admin_url_auth, admin_url_auth_wrapper, auth_mode, cors_auth
 from api.setting import get_setting
 
 
@@ -94,4 +94,20 @@ def get_key():
     return data
 
 
-
+@admin_url_auth_wrapper('api')
+@auth_mode('login')
+@cors_auth()
+@with_db('write')
+def change_passwd(data, username):
+    try:
+        first = data['first']
+        second = data['second']
+        if first and second:
+            if first == second:
+                sha256_password = sha256(second.encode('utf-8')).hexdigest()
+                state = g.db.update('users', {'password': sha256_password}, where={'username': username})
+                if state[0]:
+                    return True, ''
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''

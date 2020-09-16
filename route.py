@@ -43,8 +43,9 @@ app.add_url_rule(rule='/hello/<path:admin_url>/test', view_func=test_url, method
 # admin manager
 from view.page import admin_login_page
 from view.page import back_manage_page
-from view.login import login
-from view.login import get_key
+from view.user import login
+from view.user import get_key
+from view.user import change_passwd_view
 from view.post import save_post_view
 from view.post import publish_post_view
 from view.post import publish_post_state_view
@@ -64,6 +65,8 @@ app.add_url_rule(rule='/admin/<path:admin_url>/managepage', view_func=back_manag
 # login api
 app.add_url_rule(rule='/admin/<path:admin_url>/getkey', view_func=get_key, methods=['GET'])
 app.add_url_rule(rule='/admin/<path:admin_url>/login', view_func=login, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/user/ch_pwd', view_func=change_passwd_view, methods=['POST'])
+
 # post api
 app.add_url_rule(rule='/admin/<path:admin_url>/post/save', view_func=save_post_view, methods=['POST'])
 app.add_url_rule(rule='/admin/<path:admin_url>/post/publish', view_func=publish_post_view, methods=['POST'])
@@ -128,6 +131,14 @@ from view.setting import set_setting_view
 app.add_url_rule(rule='/admin/<path:admin_url>/setting/get_all', view_func=get_all_setting_view, methods=['GET'])
 app.add_url_rule(rule='/admin/<path:admin_url>/setting/get', view_func=get_one_setting_view, methods=['POST'])
 app.add_url_rule(rule='/admin/<path:admin_url>/setting/set', view_func=set_setting_view, methods=['POST'])
+
+
+# notice
+from view.notice import get_static_notice_view
+from view.notice import set_static_notice_view
+
+app.add_url_rule(rule='/admin/<path:admin_url>/notice/static/get', view_func=get_static_notice_view, methods=['GET'])
+app.add_url_rule(rule='/admin/<path:admin_url>/notice/static/set', view_func=set_static_notice_view, methods=['POST'])
 #####################################
 
 

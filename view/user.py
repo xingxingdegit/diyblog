@@ -8,6 +8,7 @@ import random
 import logging
 from api.logger import base_log
 from api.auth import backend_g_admin_url
+from api.user import change_passwd
 
 log = logging.getLogger(__name__)
 
@@ -53,3 +54,19 @@ def login():
         log.error(traceback.format_exc())
     return jsonify(return_data)
 
+
+@base_log
+@backend_g_admin_url
+def change_passwd_view():
+    try:
+        cookies = request.cookies
+        username = cookies['username'].strip()
+        data = request.get_json()
+        return_data = change_passwd(data, username)
+        if return_data[0]:
+            return jsonify({'success': True, 'data': return_data[1]})
+        else:
+            return jsonify({'success': False, 'data': return_data[1]})
+    except Exception:
+        log.error(traceback.format_exc())
+    return jsonify({'success': False, 'data': ''})

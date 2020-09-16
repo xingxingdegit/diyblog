@@ -4,6 +4,7 @@ import os
 from hashlib import sha256
 import logging
 import traceback
+import datetime
 
 log = logging.getLogger(__name__)
 
@@ -39,9 +40,10 @@ def init_setting(data):
         sitename = data.get('sitename', '').strip()
         admin_url = data.get('admin_url', 'admin_back').strip()
         set_data.append({'key': 'install_init', 'value': 1, 'status': 2, 'intro': '1表示已经初始化过了'})
-        set_data.append({'key': 'sitename', 'value': sitename, 'intro': '昵称'})
+        set_data.append({'key': 'sitename', 'value': sitename, 'intro': '网站名称'})
         set_data.append({'key': 'admin_url', 'value': admin_url, 'intro': '后台登录地址'})
         set_data.append({'key': 'avatar_url', 'value': 'static/image/123.jpg', 'intro': '头像路径'})
+        set_data.append({'key': 'footer_info', 'value': '<p>hello world</p>', 'intro': '页脚信息'})
         set_data.append({'key': 'login_prefix_key_timeout', 'value': 300, 
                      'intro': '登录界面获取的安全key超时时间， 这个key与用户名密码共同组成登录验证。'})
         set_data.append({'key': 'user_timeout', 'value': 36000, 'intro': '用户登陆以后空闲的超时时间，超时以后需要重新登陆'})
@@ -57,7 +59,13 @@ def init_setting(data):
         class_data = []
         class_data.append({'id': 1, 'classname': 'unclass', 'status': 2, 'sort': 0, 'intro': '未分类'})
         class_state = g.db.insert('class', class_data)
-        if set_state[0] and class_state[0]:
+
+        notice_data = []
+        timestamp = int(datetime.datetime.now().timestamp())
+        notice_data.append({'id': 1, 'content': '', 'uptime': timestamp, 'type': 1, 'status': 1, 'intro': '静态公告占位'})
+        notice_state = g.db.insert('notice', notice_data)
+
+        if set_state[0] and class_state[0] and notice_state[0]:
             return True
         return False
     except Exception:
@@ -156,7 +164,8 @@ def create_table():
               `title` VARCHAR(70) DEFAULT '' COMMENT '标题',
               `content` VARCHAR(100) NOT NULL COMMENT '内容',
               `uptime` int(10) UNSIGNED NOT NULL,
-              `status` tinyint(4) DEFAULT 1 COMMENT '1静态公告，2动态公告, 3用户留言板',
+              `type` tinyint(4) DEFAULT 1 COMMENT '1静态公告，2动态公告, 3用户留言板',
+              `status` tinyint(4) DEFAULT 1 COMMENT '1有效, 2无效',
               `intro` VARCHAR(100) DEFAULT NULL,
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
