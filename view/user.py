@@ -9,6 +9,7 @@ import logging
 from api.logger import base_log
 from api.auth import backend_g_admin_url
 from api.user import change_passwd
+from api.user import logout
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ def get_key():
      
 @base_log
 @backend_g_admin_url
-def login():
+def login_view():
     return_data = {'success': False, 'data': None}
     try:
         userdata = request.get_json()
@@ -67,6 +68,25 @@ def change_passwd_view():
             return jsonify({'success': True, 'data': return_data[1]})
         else:
             return jsonify({'success': False, 'data': return_data[1]})
+    except Exception:
+        log.error(traceback.format_exc())
+    return jsonify({'success': False, 'data': ''})
+
+
+@base_log
+@backend_g_admin_url
+def logout_view():
+    try:
+        data = request.get_json()
+        username = data['username'].strip()
+        username2 = request.cookies['username'].strip()
+        if username == username2:
+            return_data = logout(username)
+            if return_data[0]:
+                return jsonify({'success': True, 'data': return_data[1]})
+            else:
+                return jsonify({'success': False, 'data': return_data[1]})
+
     except Exception:
         log.error(traceback.format_exc())
     return jsonify({'success': False, 'data': ''})

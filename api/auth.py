@@ -4,7 +4,7 @@ from cryptography.fernet import Fernet
 from flask_socketio import disconnect
 from api.setting import get_setting
 import traceback
-import base64
+from base64 import b64encode
 import datetime
 import logging
 import functools
@@ -69,7 +69,8 @@ def check_login_state(r_type='api'):
     session = cookie.get('session')
     if not (username and session):
         return return_data
-    user_state = g.redis.hgetall(username)
+    hash_username = b64encode(sha256(username.encode('utf-8')).digest()).decode('utf-8')
+    user_state = g.redis.hgetall(hash_username)
     if not user_state:
         return return_data
     timestamp_now = int(datetime.datetime.now().timestamp())
@@ -82,7 +83,7 @@ def check_login_state(r_type='api'):
                 session_username, sessionid = session_decode.split()
                 if session_username == username:
                     if sessionid == user_state['session_id']:
-                        g.redis.hset(username, 'lasttime', timestamp_now)
+                        g.redis.hset(hash_username, 'lasttime', timestamp_now)
                         return True, ''
     except Exception:
         log.error(traceback.format_exc())
@@ -113,7 +114,7 @@ def client_ip_unsafe(func):
         """
         client = request.remote_addr
         timestamp_now = int(datetime.datetime.now().timestamp())
-        client_key = 'client_ip_unsafe_{}'.format(base64.b64encode(client.encode('utf-8')).decode('utf-8'))
+        client_key = 'client_ip_unsafe_{}'.format(b64encode(client.encode('utf-8')).decode('utf-8'))
         log.info('client_key:{}'.format(client_key))
         client_data = g.redis.hgetall(client_key)
 

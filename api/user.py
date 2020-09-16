@@ -9,6 +9,7 @@ from hashlib import sha256
 import traceback
 from api.auth import admin_url_auth, admin_url_auth_wrapper, auth_mode, cors_auth
 from api.setting import get_setting
+from base64 import b64encode
 
 
 log = logging.getLogger(__name__)
@@ -51,8 +52,9 @@ def login(username, password, key):
                                 'cookie_key': cookie_key,
                                 'timeout': setting['user_timeout'],
                             }
-                            g.redis.hmset(username, session_data)
-                            g.redis.expire(username, setting['user_timeout'])
+                            hash_username = b64encode(sha256(username.encode('utf-8')).digest()).decode('utf-8')
+                            g.redis.hmset(hash_username, session_data)
+                            g.redis.expire(hash_username, setting['user_timeout'])
                             cipher = Fernet(cookie_key.encode('utf-8'))
                             session = cipher.encrypt(('{} {}'.format(username, session_id)).encode('utf-8'))
                             return True, session
@@ -70,8 +72,23 @@ def login(username, password, key):
             return False, False
     except Exception:
         log.error(traceback.format_exc())
-
     return False, None
+
+
+
+@admin_url_auth_wrapper('api')
+@auth_mode('login')
+@cors_auth()
+@with_redis
+def logout(username):
+    try:
+        hash_username = b64encode(sha256(username.encode('utf-8')).digest()).decode('utf-8')
+        state = g.redis.delete(hash_username)
+        if state:
+            return True, ''
+    except Exception:
+        log.error(traceback.format_exc())
+    return False, ''
 
 
 @admin_url_auth_wrapper('api')

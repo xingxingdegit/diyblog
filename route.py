@@ -43,7 +43,8 @@ app.add_url_rule(rule='/hello/<path:admin_url>/test', view_func=test_url, method
 # admin manager
 from view.page import admin_login_page
 from view.page import back_manage_page
-from view.user import login
+from view.user import login_view
+from view.user import logout_view
 from view.user import get_key
 from view.user import change_passwd_view
 from view.post import save_post_view
@@ -64,7 +65,8 @@ app.add_url_rule(rule='/admin/<path:admin_url>/loginpage', view_func=admin_login
 app.add_url_rule(rule='/admin/<path:admin_url>/managepage', view_func=back_manage_page, methods=['GET'])
 # login api
 app.add_url_rule(rule='/admin/<path:admin_url>/getkey', view_func=get_key, methods=['GET'])
-app.add_url_rule(rule='/admin/<path:admin_url>/login', view_func=login, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/login', view_func=login_view, methods=['POST'])
+app.add_url_rule(rule='/admin/<path:admin_url>/logout', view_func=logout_view, methods=['POST'])
 app.add_url_rule(rule='/admin/<path:admin_url>/user/ch_pwd', view_func=change_passwd_view, methods=['POST'])
 
 # post api
